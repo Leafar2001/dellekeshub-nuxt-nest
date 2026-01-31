@@ -1,0 +1,46 @@
+import { Body, Controller, Post, Get, Res, Req, UseGuards } from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { RegisterValidator } from './validators/register.validator';
+import { LoginValidator } from './validators/login.validator';
+import { Roles } from 'src/middleware/roles.decorator';
+import { JwtAuthGuard } from 'src/middleware/jwt-auth.guard';
+import { RolesGuard } from 'src/middleware/roles.guard';
+import type { Response } from 'express';
+
+@Controller('auth')
+export class AuthController {
+  constructor(private authService: AuthService) {}
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  getUser(@Req() req) {
+    return req.user;
+  }
+
+  @Post('register')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async register(@Body() validator: RegisterValidator) {
+    const user = await this.authService.register(validator.username, validator.password);
+    console.log('New registered user:', user);
+    if (user) return user
+  }
+
+  @Post('login')
+  async login(@Body() validator: LoginValidator, @Res({ passthrough: true }) res: Response) {
+    const user = await this.authService.validateUser(validator.username, validator.password);
+
+    const payload = { sub: user._id.toString(), username: user.username, role: user.role };
+
+    const accessToken = this.authService.getAccessToken(payload);
+
+    res.cookie('access_token', accessToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false, // true in production (HTTPS)
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return { message: 'Logged in' };
+  }
+}
