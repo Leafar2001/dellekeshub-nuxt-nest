@@ -1,9 +1,13 @@
-import { Injectable, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { StringValue } from 'ms'
+import { StringValue } from 'ms';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +23,7 @@ export class AuthService {
 
     const hashed = await bcrypt.hash(password, 10);
     const user = await this.usersService.create({ username, password: hashed });
-    return user
+    return user;
   }
 
   async validateUser(username: string, password: string) {

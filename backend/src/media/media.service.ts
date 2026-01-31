@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, UnauthorizedException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Media, MediaDocument } from './schemas/media.schema';
@@ -14,8 +19,11 @@ export class MediaService {
   ) {}
 
   async createMedia(validator: CreateMediaValidator) {
-    const existingMedia = await this.mediaModel.findOne({ title: validator.title });
-    if (existingMedia) throw new ConflictException('Media title already exists');
+    const existingMedia = await this.mediaModel.findOne({
+      title: validator.title,
+    });
+    if (existingMedia)
+      throw new ConflictException('Media title already exists');
 
     return this.mediaModel.create(validator);
   }
@@ -24,23 +32,29 @@ export class MediaService {
     const media = await this.mediaModel.findById(mediaId);
 
     if (!media) {
-      throw new NotFoundException('Media to add video item to could not be found');
+      throw new NotFoundException(
+        'Media to add video item to could not be found',
+      );
     }
 
     if (media.type === 'movie') validator.seasonNumber = 0;
 
-    let season = media.videos?.find((s) => s.seasonNumber === validator.seasonNumber);
+    let season = media.videos?.find(
+      (s) => s.seasonNumber === validator.seasonNumber,
+    );
 
     if (!season) {
       season = {
-        seasonNumber: validator.seasonNumber!,
+        seasonNumber: validator.seasonNumber,
         episodes: [],
       };
       if (!media.videos) media.videos = [];
       media.videos.push(season);
     }
 
-    const exists = season.episodes.some((e) => e.episodeNumber === validator.episodeNumber);
+    const exists = season.episodes.some(
+      (e) => e.episodeNumber === validator.episodeNumber,
+    );
     if (exists) throw new BadRequestException('Episode already exists');
 
     season.episodes.push({
@@ -88,8 +102,12 @@ export class MediaService {
   }
 
   async findMediaByTitle(query: string) {
-    const media = await this.mediaModel.find({ $text: { $search: query } },{ score: { $meta: 'textScore' } },).sort({ score: { $meta: 'textScore' } }).limit(20);
-    if (!media) throw new NotFoundException('No media found matching your search');
+    const media = await this.mediaModel
+      .find({ $text: { $search: query } }, { score: { $meta: 'textScore' } })
+      .sort({ score: { $meta: 'textScore' } })
+      .limit(20);
+    if (!media)
+      throw new NotFoundException('No media found matching your search');
     return media;
   }
 
@@ -99,7 +117,7 @@ export class MediaService {
 
     for (const season of media.videos ?? []) {
       const episode = season.episodes.find((e) => {
-        return e._id.toString() === episodeId
+        return e._id.toString() === episodeId;
       });
       if (episode) return episode;
     }
@@ -117,7 +135,7 @@ export class MediaService {
 
     for (const season of media.videos ?? []) {
       const episode = season.episodes.find((e) => {
-        return e._id.toString() === episodeId
+        return e._id.toString() === episodeId;
       });
       if (episode) return episode.thumbnailPath;
     }
