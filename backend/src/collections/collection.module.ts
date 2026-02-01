@@ -14,4 +14,4 @@ import { CollectionService } from './services/collection.service';
   providers: [CollectionService],
   exports: [CollectionService],
 })
-export class MediaModule {}
+export class CollectionModule {}

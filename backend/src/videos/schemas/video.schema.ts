@@ -38,7 +38,7 @@ class VideoPerson {
   @Prop({ type: Types.ObjectId, ref: 'Person', required: true })
   personId: Types.ObjectId;
 
-  @Prop({ enum: personRoles })
+  @Prop({ type: [String], enum: personRoles })
   roles: PersonRole[];
 
   @Prop({ default: () => new Date() })
@@ -52,7 +52,7 @@ class VideoImage {
   @Prop({ type: Types.ObjectId, ref: 'Image', required: true })
   imageId: Types.ObjectId;
 
-  @Prop({ enum: imageTypes, required: true })
+  @Prop({ type: [String], enum: imageTypes, required: true })
   type: ImageType;
 
   @Prop({ default: () => new Date() })
@@ -63,13 +63,13 @@ const VideoImageSchema = SchemaFactory.createForClass(VideoImage);
 
 @Schema({ timestamps: true })
 export class Video {
-  @Prop({ required: true })
+  @Prop({ type: Map, of: String, required: true })
   slug: LocalizedString;
 
-  @Prop({ required: true })
+  @Prop({ type: Map, of: String, required: true })
   title: LocalizedString;
 
-  @Prop()
+  @Prop({ type: Map, of: String })
   description?: LocalizedString;
 
   @Prop({ default: [] })
@@ -81,7 +81,7 @@ export class Video {
   @Prop()
   releaseDate?: Date;
 
-  @Prop()
+  @Prop({ type: Map, of: String })
   trailer?: LocalizedString;
 
   @Prop({ type: [VideoImageSchema], default: [] })

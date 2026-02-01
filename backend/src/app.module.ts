@@ -5,7 +5,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { MediaModule } from './media/media.module';
+import { VideoModule } from './videos/video.module';
+import { CollectionModule } from './collections/collection.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { WatchProgressModule } from './watch-progress/watch-progress.module';
 import { StreamModule } from './stream/stream.module';
@@ -18,7 +19,8 @@ import { StreamModule } from './stream/stream.module';
     MongooseModule.forRoot(`${process.env.MONGO_URI}`),
     UsersModule,
     AuthModule,
-    MediaModule,
+    VideoModule,
+    CollectionModule,
     ReviewsModule,
     WatchProgressModule,
     StreamModule,

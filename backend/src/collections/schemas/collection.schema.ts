@@ -15,7 +15,7 @@ class CollectionImage {
   @Prop({ type: Types.ObjectId, ref: 'Image', required: true })
   imageId: Types.ObjectId;
 
-  @Prop({ enum: imageTypes, required: true })
+  @Prop({ type: [String], enum: imageTypes, required: true })
   type: ImageType;
 
   @Prop({ default: () => new Date() })
@@ -51,16 +51,16 @@ const SeasonSchema = SchemaFactory.createForClass(Season);
 
 @Schema({ timestamps: true })
 export class Collection {
-  @Prop({ required: true })
+  @Prop({ type: Map, of: String, required: true })
   title: LocalizedString;
 
-  @Prop({ required: true })
+  @Prop({ type: Map, of: String, required: true })
   slug: LocalizedString;
 
-  @Prop()
+  @Prop({ type: Map, of: String })
   description?: LocalizedString;
 
-  @Prop({ enum: collectionTypes, required: true })
+  @Prop({ type: [String], enum: collectionTypes, required: true })
   type: CollectionType;
 
   @Prop({ type: [CollectionVideoSchema], default: [] })
@@ -72,7 +72,7 @@ export class Collection {
   @Prop({ type: [CollectionImageSchema], default: [] })
   images: CollectionImage[];
 
-  @Prop()
+  @Prop({ type: Map, of: String })
   trailer?: LocalizedString;
 }
 
