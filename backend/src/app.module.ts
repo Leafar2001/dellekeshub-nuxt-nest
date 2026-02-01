@@ -13,15 +13,15 @@ import { StreamModule } from './stream/stream.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
     }),
-    MongooseModule.forRoot(`${process.env.MONGO_URI}`), 
-    UsersModule, 
-    AuthModule, 
-    MediaModule, 
-    ReviewsModule, 
-    WatchProgressModule, 
-    StreamModule
+    MongooseModule.forRoot(`${process.env.MONGO_URI}`),
+    UsersModule,
+    AuthModule,
+    MediaModule,
+    ReviewsModule,
+    WatchProgressModule,
+    StreamModule,
   ],
   controllers: [AppController],
   providers: [AppService],

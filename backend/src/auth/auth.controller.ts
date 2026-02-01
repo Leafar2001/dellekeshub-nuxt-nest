@@ -12,7 +12,7 @@ import { Roles } from 'src/middleware/roles.decorator';
 import { JwtAuthGuard } from 'src/middleware/jwt-auth.guard';
 import { RolesGuard } from 'src/middleware/roles.guard';
 import type { Response } from 'express';
-import { createZodValidationPipe } from '../utils/zod-validation';
+import { createZodValidationPipe } from '../lib/utils/zod-validation';
 import {
   type RegistrationRequest,
   RegistrationRequestSchema,

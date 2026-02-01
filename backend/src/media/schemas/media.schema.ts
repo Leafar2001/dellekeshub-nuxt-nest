@@ -1,76 +1,77 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import {
+  type ImageType,
+  type LocalizedString,
+  imageTypes,
+} from 'src/lib/types/project';
 
-export type MediaDocument = Media & Document;
+export type CollectionDocument = Collection & Document;
 
 @Schema({ _id: false })
-class Episode {
-  @Prop({ type: Types.ObjectId, default: () => new Types.ObjectId() })
-  _id: Types.ObjectId;
+class CollectionImage {
+  @Prop({ type: Types.ObjectId, ref: 'Image', required: true })
+  imageId: Types.ObjectId;
 
-  @Prop({ required: true })
-  title: string;
+  @Prop({ enum: imageTypes, required: true })
+  type: ImageType;
 
-  @Prop({ required: true })
-  videoPath: string;
+  @Prop({ default: () => new Date() })
+  addedAt: Date;
+}
 
-  @Prop()
-  subtitlePath?: string;
+const CollectionImageSchema = SchemaFactory.createForClass(CollectionImage);
 
-  @Prop()
-  thumbnailPath?: string;
-
-  @Prop()
-  durationSeconds?: number;
+@Schema({ _id: false })
+class CollectionVideo {
+  @Prop({ type: Types.ObjectId, ref: 'Video', required: true })
+  videoId: Types.ObjectId;
 
   @Prop({ required: true })
   episodeNumber: number;
+
+  @Prop({ default: () => new Date() })
+  addedAt: Date;
 }
 
-const EpisodeSchema = SchemaFactory.createForClass(Episode);
+const CollectionVideoSchema = SchemaFactory.createForClass(CollectionVideo);
 
 @Schema({ _id: false })
 class Season {
+  @Prop({ type: [CollectionVideoSchema], default: [] })
+  episodes: CollectionVideo[];
+
   @Prop({ required: true })
   seasonNumber: number;
-
-  @Prop({ type: [EpisodeSchema], default: [] })
-  episodes: Episode[];
 }
 
 const SeasonSchema = SchemaFactory.createForClass(Season);
 
 @Schema({ timestamps: true })
-export class Media {
+export class Collection {
   @Prop({ required: true })
-  title: string;
+  title: LocalizedString;
+
+  @Prop({ required: true })
+  slug: LocalizedString;
 
   @Prop()
-  year?: number;
-
-  @Prop()
-  description?: string;
+  description?: LocalizedString;
 
   @Prop({ enum: ['movie', 'series'], required: true })
   type: 'movie' | 'series';
 
+  @Prop({ type: [CollectionVideoSchema], default: [] })
+  videos: CollectionVideo[];
+
   @Prop({ type: [SeasonSchema], default: [] })
-  videos?: Season[];
+  seasons: Season[];
+
+  @Prop({ type: [CollectionImageSchema], default: [] })
+  images: CollectionImage[];
 
   @Prop()
-  thumbnailPath?: string;
-
-  @Prop()
-  trailerUrl?: string;
-
-  @Prop()
-  genres?: string[];
-
-  @Prop()
-  actors?: string[];
-
-  @Prop()
-  directors?: string[];
+  trailer?: LocalizedString;
 }
 
-export const MediaSchema = SchemaFactory.createForClass(Media);
+export const CollectionSchema = SchemaFactory.createForClass(Collection);
