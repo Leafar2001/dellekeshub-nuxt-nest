@@ -4,6 +4,8 @@ import {
   type ImageType,
   type LocalizedString,
   imageTypes,
+  collectionTypes,
+  type CollectionType,
 } from 'src/lib/types/project';
 
 export type CollectionDocument = Collection & Document;
@@ -58,8 +60,8 @@ export class Collection {
   @Prop()
   description?: LocalizedString;
 
-  @Prop({ enum: ['movie', 'series'], required: true })
-  type: 'movie' | 'series';
+  @Prop({ enum: collectionTypes, required: true })
+  type: CollectionType;
 
   @Prop({ type: [CollectionVideoSchema], default: [] })
   videos: CollectionVideo[];

@@ -16,11 +16,8 @@ import { createZodValidationPipe } from '../lib/utils/zod-validation';
 import {
   type RegistrationRequest,
   RegistrationRequestSchema,
-} from './validation/registration-schema';
-import {
-  type LoginRequest,
-  LoginRequestSchema,
-} from './validation/login-schema';
+} from './types/registration-schema';
+import { type LoginRequest, LoginRequestSchema } from './types/login-schema';
 
 @Controller('auth')
 export class AuthController {

@@ -13,8 +13,8 @@ export type LocalizedString = z.infer<typeof LocalizedStringSchema>;
 export const imageTypes = ['thumbnail', 'snapshot', 'banner'] as const;
 export type ImageType = (typeof imageTypes)[number];
 
-export const mediaTypes = ['movie', 'series'] as const;
-export type MediaType = (typeof mediaTypes)[number];
+export const collectionTypes = ['movie', 'series'] as const;
+export type CollectionType = (typeof collectionTypes)[number];
 
 export const personRoles = ['actor', 'director', 'writer', 'star'] as const;
 export type PersonRole = (typeof personRoles)[number];
