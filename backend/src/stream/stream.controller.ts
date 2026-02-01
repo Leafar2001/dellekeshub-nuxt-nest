@@ -1,5 +1,4 @@
-import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
-import type { Response } from 'express';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../middleware/jwt-auth.guard';
 import { StreamService } from './stream.service';
 
@@ -9,16 +8,15 @@ export class StreamController {
   constructor(private streamService: StreamService) {}
 
   @Get('video/:videoId')
-  stream(@Param('videoId') videoId: string, @Res() res: Response) {
-    return this.streamService.streamVideo(videoId, res);
+  stream(@Param('videoId') videoId: string) {
+    return this.streamService.streamVideo(videoId);
   }
 
   @Get('video/:videoId/subtitles/:subtitleId')
   subtitles(
     @Param('videoId') videoId: string,
     @Param('subtitleId') subtitleId: string,
-    @Res() res: Response,
   ) {
-    return this.streamService.streamSubtitles(videoId, subtitleId, res);
+    return this.streamService.streamSubtitles(videoId, subtitleId);
   }
 }

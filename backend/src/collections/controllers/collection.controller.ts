@@ -75,7 +75,7 @@ export class CollectionController {
     };
   }
 
-  @Post('create')
+  @Post()
   @UseGuards(RolesGuard)
   @Roles('admin')
   async create(
