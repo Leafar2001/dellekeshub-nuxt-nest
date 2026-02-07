@@ -1,5 +1,5 @@
 import slugify from 'slugify';
-import { LocalizedString } from '../types/project';
+import { LocalizedString } from '../validation/localization';
 
 export function generateSlug(s: string): string {
   return slugify(s);

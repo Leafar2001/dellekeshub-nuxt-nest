@@ -1,5 +1,6 @@
 import * as z from 'zod/v4';
-import { LocalizedStringSchema, collectionTypes } from 'src/lib/types/project';
+import { collectionTypes } from 'src/lib/project';
+import { LocalizedStringSchema } from 'src/lib/validation/localization';
 
 export const UpdateCollectionRequestSchema = z.object({
   title: LocalizedStringSchema.optional(),

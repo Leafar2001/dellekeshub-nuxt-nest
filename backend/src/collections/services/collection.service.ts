@@ -1,11 +1,14 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Collection, CollectionDocument } from '../schemas/collection.schema';
+import {
+  Collection,
+  CollectionDocument,
+} from '../persistence/collection.schema';
 import { Model } from 'mongoose';
-import { Pagination } from '../../lib/types/pagination';
+import { Pagination } from '../../lib/pagination';
 import { queryResultToPagination } from '../../lib/utils/pagination-utils';
-import { CreateCollectionRequest } from '../types/create-collection-schema';
-import { UpdateCollectionRequest } from '../types/update-collection-schema';
+import { CreateCollectionRequest } from '../validation/create-collection-schema';
+import { UpdateCollectionRequest } from '../validation/update-collection-schema';
 import { generateSlugLocalizedString } from '../../lib/utils/slug-utils';
 
 @Injectable()

@@ -1,15 +1,30 @@
-import { Controller, Get, Post, Req, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Req,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
-import { JwtAuthGuard } from '../middleware/jwt-auth.guard';
+import { SessionAuthGuard } from '../auth/middleware/session.guard';
+import { Roles } from '../auth/middleware/roles.decorator';
+import type { Request } from 'express';
 
+@UseGuards(SessionAuthGuard)
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @Roles('admin')
   @Post(':mediaId/create')
-  create( @Param('mediaId') mediaId: string, @Req() req, @Body() body: { rating: number; comment?: string }) {
-    return this.reviewsService.create(req.user.userId, mediaId, body);
+  create(
+    @Param('mediaId') mediaId: string,
+    @Req() req: Request,
+    @Body() body: { rating: number; comment?: string },
+  ) {
+    return this.reviewsService.create(req.session.userId!, mediaId, body);
   }
 
   @Get(':mediaId')

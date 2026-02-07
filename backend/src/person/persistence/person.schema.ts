@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { type LocalizedString } from '../../lib/types/project';
+import { type LocalizedString } from '../../lib/validation/localization';
 
 export type PersonDocument = Person & Document;
 

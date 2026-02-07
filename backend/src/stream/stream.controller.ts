@@ -1,8 +1,8 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from '../middleware/jwt-auth.guard';
 import { StreamService } from './stream.service';
+import { SessionAuthGuard } from '../auth/middleware/session.guard';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(SessionAuthGuard)
 @Controller('watch')
 export class StreamController {
   constructor(private streamService: StreamService) {}

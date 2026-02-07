@@ -3,10 +3,10 @@ import { Document, Types } from 'mongoose';
 import {
   type ImageType,
   imageTypes,
-  type LocalizedString,
   PersonRole,
   personRoles,
-} from 'src/lib/types/project';
+} from 'src/lib/project';
+import type { LocalizedString } from '../../lib/validation/localization';
 
 export type VideoDocument = Video & Document;
 

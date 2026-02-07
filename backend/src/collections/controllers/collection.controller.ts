@@ -9,9 +9,9 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../../middleware/jwt-auth.guard';
-import { RolesGuard } from '../../middleware/roles.guard';
-import { Roles } from '../../middleware/roles.decorator';
+import { SessionAuthGuard } from '../../auth/middleware/session.guard';
+import { RolesGuard } from '../../auth/middleware/roles.guard';
+import { Roles } from '../../auth/middleware/roles.decorator';
 import { CollectionService } from '../services/collection.service';
 import {
   keyToPagination,
@@ -20,15 +20,15 @@ import {
 import {
   type CreateCollectionRequest,
   CreateCollectionRequestSchema,
-} from '../types/create-collection-schema';
+} from '../validation/create-collection-schema';
 import { createZodValidationPipe } from '../../lib/utils/zod-validation';
 import {
   type UpdateCollectionRequest,
   UpdateCollectionRequestSchema,
-} from '../types/update-collection-schema';
+} from '../validation/update-collection-schema';
 
 @Controller('collections')
-@UseGuards(JwtAuthGuard)
+@UseGuards(SessionAuthGuard)
 export class CollectionController {
   constructor(private readonly collectionService: CollectionService) {}
 

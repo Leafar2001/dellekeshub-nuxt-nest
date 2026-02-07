@@ -1,14 +1,8 @@
-import * as z from 'zod/v4';
+export const roles = ['user', 'admin'] as const;
+export type Role = (typeof roles)[number];
 
 export const locales = ['en-US', 'nl-NL'] as const;
 export type Locale = (typeof locales)[number];
-
-export const LocalizedStringSchema = z.partialRecord(
-  z.enum(locales),
-  z.string(),
-);
-
-export type LocalizedString = z.infer<typeof LocalizedStringSchema>;
 
 export const imageTypes = ['thumbnail', 'snapshot', 'banner'] as const;
 export type ImageType = (typeof imageTypes)[number];

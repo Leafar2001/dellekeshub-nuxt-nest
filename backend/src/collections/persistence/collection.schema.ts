@@ -2,11 +2,11 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import {
   type ImageType,
-  type LocalizedString,
   imageTypes,
   collectionTypes,
   type CollectionType,
-} from 'src/lib/types/project';
+} from 'src/lib/project';
+import type { LocalizedString } from '../../lib/validation/localization';
 
 export type CollectionDocument = Collection & Document;
 
