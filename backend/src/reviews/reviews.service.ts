@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Review, ReviewDocument } from './schemas/review.schema';
+import { Review, ReviewDocument } from './persistence/review.schema';
 
 @Injectable()
 export class ReviewsService {
@@ -9,7 +9,11 @@ export class ReviewsService {
     @InjectModel(Review.name) private reviewModel: Model<ReviewDocument>,
   ) {}
 
-  async create(userId: string, mediaId: string, validator: { rating: number; comment?: string }) {
+  async create(
+    userId: string,
+    mediaId: string,
+    validator: { rating: number; comment?: string },
+  ) {
     return this.reviewModel.create({
       userId,
       mediaId,
