@@ -18,19 +18,24 @@ import {
   paginationToKey,
 } from '../../lib/utils/pagination-utils';
 import {
-  type CreateCollectionRequest,
-  CreateCollectionRequestSchema,
+  type CreateCollection,
+  CreateCollectionSchema,
 } from '../validation/create-collection-schema';
 import { createZodValidationPipe } from '../../lib/utils/zod-validation';
 import {
-  type UpdateCollectionRequest,
-  UpdateCollectionRequestSchema,
+  type UpdateCollection,
+  UpdateCollectionSchema,
 } from '../validation/update-collection-schema';
+import { IndexingService } from '../services/indexing.service';
+import * as querystring from 'node:querystring';
 
 @Controller('collections')
 @UseGuards(SessionAuthGuard)
 export class CollectionController {
-  constructor(private readonly collectionService: CollectionService) {}
+  constructor(
+    private readonly collectionService: CollectionService,
+    private readonly indexationService: IndexingService,
+  ) {}
 
   @Get('all')
   async findAll(
@@ -75,12 +80,19 @@ export class CollectionController {
     };
   }
 
+  @Get('index') // TODO: Only for testing
+  async index(@Query('q') q: string) {
+    await this.indexationService.indexCollection(q);
+
+    return { success: true };
+  }
+
   @Post()
   @UseGuards(RolesGuard)
   @Roles('admin')
   async create(
-    @Body(createZodValidationPipe(CreateCollectionRequestSchema))
-    body: CreateCollectionRequest,
+    @Body(createZodValidationPipe(CreateCollectionSchema))
+    body: CreateCollection,
   ) {
     return this.collectionService.createCollection(body);
   }
@@ -95,8 +107,8 @@ export class CollectionController {
   @Roles('admin')
   async update(
     @Param('id') id: string,
-    @Body(createZodValidationPipe(UpdateCollectionRequestSchema))
-    body: UpdateCollectionRequest,
+    @Body(createZodValidationPipe(UpdateCollectionSchema))
+    body: UpdateCollection,
   ) {
     return this.collectionService.updateCollection(id, body);
   }

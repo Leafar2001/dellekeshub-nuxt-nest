@@ -6,8 +6,12 @@ export function generateSlug(s: string): string {
 }
 
 export function generateSlugLocalizedString(
-  localizedString: LocalizedString,
-): LocalizedString {
+  localizedString: LocalizedString | undefined,
+): LocalizedString | undefined {
+  if (!localizedString) {
+    return undefined;
+  }
+
   return Object.fromEntries(
     Object.entries(localizedString).map(([key, value]) => [
       key,
