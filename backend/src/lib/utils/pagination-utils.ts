@@ -1,4 +1,4 @@
-import { Pagination, PaginationSchema } from '../pagination';
+import { Pagination, PaginationSchema } from '../validation/pagination';
 import * as z from 'zod/v4';
 
 const cursorSchema = z.object({
