@@ -5,17 +5,10 @@ import {
 } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { StringValue } from 'ms';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
-    private config: ConfigService,
-  ) {}
+  constructor(private usersService: UsersService) {}
 
   async register(username: string, password: string) {
     const existingUser = await this.usersService.findByUsername(username);
@@ -39,12 +32,5 @@ export class AuthService {
     }
 
     return user;
-  }
-
-  getAccessToken(payload: any) {
-    return this.jwtService.sign(payload, {
-      secret: this.config.get('JWT_ACCESS_SECRET'),
-      expiresIn: this.config.get('JWT_ACCESS_EXPIRES') as StringValue,
-    });
   }
 }

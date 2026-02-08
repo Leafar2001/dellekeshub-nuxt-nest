@@ -7,8 +7,7 @@ import {
 import { Model } from 'mongoose';
 import { Pagination } from '../../lib/validation/pagination';
 import { queryResultToPagination } from '../../lib/utils/pagination-utils';
-import { CreateCollection } from '../validation/create-collection-schema';
-import { UpdateCollection } from '../validation/update-collection-schema';
+import { CreateCollectionRequest } from '../validation/create-collection-request-schema';
 import { generateSlugLocalizedString } from '../../lib/utils/slug-utils';
 
 @Injectable()
@@ -55,6 +54,12 @@ export class CollectionService {
 
   async findCollectionByTitle(
     title: string,
+  ): Promise<CollectionDocument | null> {
+    return this.collectionModel.findOne({ 'title.en-US': title });
+  }
+
+  async findCollectionsByTitle(
+    title: string,
     limit: number = 20,
     pagination?: Pagination,
   ): Promise<{
@@ -90,7 +95,9 @@ export class CollectionService {
     };
   }
 
-  async createCollection(body: CreateCollection): Promise<CollectionDocument> {
+  async createCollection(
+    body: CreateCollectionRequest,
+  ): Promise<CollectionDocument> {
     const existingCollection = await this.collectionModel.findOne({
       'title.en-US': body.title['en-US'],
     });
@@ -109,7 +116,7 @@ export class CollectionService {
 
   async updateCollection(
     id: string,
-    body: UpdateCollection,
+    body: Partial<Collection>,
   ): Promise<CollectionDocument | null> {
     return this.collectionModel.findByIdAndUpdate(
       id,
@@ -123,56 +130,5 @@ export class CollectionService {
 
   async deleteCollection(id: string): Promise<CollectionDocument | null> {
     return this.collectionModel.findByIdAndDelete(id);
-  }
-
-  async addVideoToCollection(
-    collectionId: string,
-    videoId: string,
-    episodeNumber: number,
-    seasonNumber?: number,
-  ) {
-    if (seasonNumber === undefined) {
-      return this.collectionModel.findByIdAndUpdate(
-        collectionId,
-        {
-          $push: {
-            videos: { episodeNumber, videoId },
-          },
-        },
-        { new: true },
-      );
-    }
-
-    // Try to push episode into existing season
-    const updated = await this.collectionModel.findOneAndUpdate(
-      {
-        _id: collectionId,
-        'seasons.seasonNumber': seasonNumber,
-      },
-      {
-        $push: {
-          'seasons.$.episodes': { episodeNumber, videoId },
-        },
-      },
-      { new: true },
-    );
-
-    if (updated) {
-      return updated;
-    }
-
-    // Season does not exist → create it
-    return this.collectionModel.findByIdAndUpdate(
-      collectionId,
-      {
-        $push: {
-          seasons: {
-            seasonNumber,
-            episodes: [{ episodeNumber, videoId }],
-          },
-        },
-      },
-      { new: true },
-    );
   }
 }

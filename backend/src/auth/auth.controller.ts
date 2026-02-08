@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Get, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  Req,
+  UseGuards,
+  Logger,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Roles } from 'src/auth/middleware/roles.decorator';
 import { RolesGuard } from 'src/auth/middleware/roles.guard';
@@ -16,6 +24,8 @@ import type { Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private authService: AuthService) {}
 
   @Get('me')
@@ -33,7 +43,7 @@ export class AuthController {
     body: RegistrationRequest,
   ) {
     const user = await this.authService.register(body.username, body.password);
-    console.log('New registered user:', user); // TODO: use proper logger
+    this.logger.log('New registered user:', user);
     if (user) return user;
   }
 

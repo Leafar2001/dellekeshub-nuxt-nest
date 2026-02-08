@@ -25,7 +25,7 @@ class CollectionImage {
 const CollectionImageSchema = SchemaFactory.createForClass(CollectionImage);
 
 @Schema({ _id: false })
-class CollectionVideo {
+export class CollectionVideo {
   @Prop({ type: Types.ObjectId, ref: 'Video', required: true })
   videoId: Types.ObjectId;
 
@@ -39,7 +39,7 @@ class CollectionVideo {
 const CollectionVideoSchema = SchemaFactory.createForClass(CollectionVideo);
 
 @Schema({ _id: false })
-class Season {
+export class Season {
   @Prop({ type: [CollectionVideoSchema], default: [] })
   episodes: CollectionVideo[];
 
@@ -51,28 +51,28 @@ const SeasonSchema = SchemaFactory.createForClass(Season);
 
 @Schema({ timestamps: true })
 export class Collection {
-  @Prop({ type: Map, of: String, required: true })
+  @Prop({ type: Object, required: true })
   title: LocalizedString;
 
-  @Prop({ type: Map, of: String, required: true })
+  @Prop({ type: Object, required: true })
   slug: LocalizedString;
 
-  @Prop({ type: Map, of: String })
+  @Prop({ type: Object })
   description?: LocalizedString;
 
   @Prop({ type: [String], enum: collectionTypes, required: true })
   type: CollectionType;
 
-  @Prop({ type: [CollectionVideoSchema], default: [] })
+  @Prop({ type: [CollectionVideoSchema] })
   videos: CollectionVideo[];
 
-  @Prop({ type: [SeasonSchema], default: [] })
+  @Prop({ type: [SeasonSchema] })
   seasons: Season[];
 
   @Prop({ type: [CollectionImageSchema], default: [] })
   images: CollectionImage[];
 
-  @Prop({ type: Map, of: String })
+  @Prop({ type: Object })
   trailer?: LocalizedString;
 }
 

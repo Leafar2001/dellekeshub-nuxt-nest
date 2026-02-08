@@ -10,6 +10,7 @@ import { CollectionModule } from './collections/collection.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { WatchProgressModule } from './watch-progress/watch-progress.module';
 import { StreamModule } from './stream/stream.module';
+import { ImageModule } from './images/image.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { StreamModule } from './stream/stream.module';
     ReviewsModule,
     WatchProgressModule,
     StreamModule,
+    ImageModule,
   ],
   controllers: [AppController],
   providers: [AppService],
