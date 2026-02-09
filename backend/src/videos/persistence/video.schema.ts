@@ -10,10 +10,10 @@ import type { LocalizedString } from '../../lib/validation/localization';
 
 export type VideoDocument = Video & Document;
 
-@Schema({ _id: false })
-class Subtitle {
-  @Prop({ type: Types.ObjectId, default: () => new Types.ObjectId() })
-  id: Types.ObjectId;
+@Schema()
+export class Subtitle {
+  @Prop({ type: Types.ObjectId, required: true })
+  _id: Types.ObjectId;
 
   @Prop({ required: true })
   name: string;
@@ -25,10 +25,7 @@ class Subtitle {
   path: string;
 
   @Prop({ default: () => new Date() })
-  updatedAt: Date;
-
-  @Prop({ default: () => new Date() })
-  createdAt: Date;
+  addedAt: Date;
 }
 
 const SubtitleSchema = SchemaFactory.createForClass(Subtitle);
@@ -63,13 +60,13 @@ const VideoImageSchema = SchemaFactory.createForClass(VideoImage);
 
 @Schema({ timestamps: true })
 export class Video {
-  @Prop({ type: Map, of: String, required: true })
+  @Prop({ type: Object, required: true })
   slug: LocalizedString;
 
-  @Prop({ type: Map, of: String, required: true })
+  @Prop({ type: Object, required: true })
   title: LocalizedString;
 
-  @Prop({ type: Map, of: String })
+  @Prop({ type: Object })
   description?: LocalizedString;
 
   @Prop({ default: [] })
@@ -81,7 +78,7 @@ export class Video {
   @Prop()
   releaseDate?: Date;
 
-  @Prop({ type: Map, of: String })
+  @Prop({ type: Object })
   trailer?: LocalizedString;
 
   @Prop({ type: [VideoImageSchema], default: [] })

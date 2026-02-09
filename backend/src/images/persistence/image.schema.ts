@@ -7,6 +7,10 @@ export type ImageDocument = Image & Document;
 export class Image {
   @Prop({ required: true })
   path: string;
+
+  name: string;
+
+  slug: string;
 }
 
 export const ImageSchema = SchemaFactory.createForClass(Image);

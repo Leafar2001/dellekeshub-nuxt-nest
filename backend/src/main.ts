@@ -1,11 +1,17 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { ConsoleLogger, ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: new ConsoleLogger({
+      prefix: 'DellekesHub',
+      logLevels: ['log', 'error', 'warn', 'debug'],
+      timestamp: true,
+    }),
+  });
 
   app.use(
     session({

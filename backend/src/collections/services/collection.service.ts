@@ -5,10 +5,9 @@ import {
   CollectionDocument,
 } from '../persistence/collection.schema';
 import { Model } from 'mongoose';
-import { Pagination } from '../../lib/pagination';
+import { Pagination } from '../../lib/validation/pagination';
 import { queryResultToPagination } from '../../lib/utils/pagination-utils';
-import { CreateCollectionRequest } from '../validation/create-collection-schema';
-import { UpdateCollectionRequest } from '../validation/update-collection-schema';
+import { CreateCollectionRequest } from '../validation/create-collection-request-schema';
 import { generateSlugLocalizedString } from '../../lib/utils/slug-utils';
 
 @Injectable()
@@ -55,6 +54,12 @@ export class CollectionService {
 
   async findCollectionByTitle(
     title: string,
+  ): Promise<CollectionDocument | null> {
+    return this.collectionModel.findOne({ 'title.en-US': title });
+  }
+
+  async findCollectionsByTitle(
+    title: string,
     limit: number = 20,
     pagination?: Pagination,
   ): Promise<{
@@ -90,7 +95,9 @@ export class CollectionService {
     };
   }
 
-  async createCollection(body: CreateCollectionRequest) {
+  async createCollection(
+    body: CreateCollectionRequest,
+  ): Promise<CollectionDocument> {
     const existingCollection = await this.collectionModel.findOne({
       'title.en-US': body.title['en-US'],
     });
@@ -107,7 +114,10 @@ export class CollectionService {
     });
   }
 
-  async updateCollection(id: string, body: UpdateCollectionRequest) {
+  async updateCollection(
+    id: string,
+    body: Partial<Collection>,
+  ): Promise<CollectionDocument | null> {
     return this.collectionModel.findByIdAndUpdate(
       id,
       {
@@ -118,7 +128,7 @@ export class CollectionService {
     );
   }
 
-  async deleteCollection(id: string) {
+  async deleteCollection(id: string): Promise<CollectionDocument | null> {
     return this.collectionModel.findByIdAndDelete(id);
   }
 }

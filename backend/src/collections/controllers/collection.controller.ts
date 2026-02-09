@@ -20,17 +20,21 @@ import {
 import {
   type CreateCollectionRequest,
   CreateCollectionRequestSchema,
-} from '../validation/create-collection-schema';
+} from '../validation/create-collection-request-schema';
 import { createZodValidationPipe } from '../../lib/utils/zod-validation';
 import {
   type UpdateCollectionRequest,
   UpdateCollectionRequestSchema,
-} from '../validation/update-collection-schema';
+} from '../validation/update-collection-request-schema';
+import { IndexingService } from '../services/indexing.service';
 
 @Controller('collections')
 @UseGuards(SessionAuthGuard)
 export class CollectionController {
-  constructor(private readonly collectionService: CollectionService) {}
+  constructor(
+    private readonly collectionService: CollectionService,
+    private readonly indexationService: IndexingService,
+  ) {}
 
   @Get('all')
   async findAll(
@@ -63,7 +67,7 @@ export class CollectionController {
     const pagination = lastKey ? keyToPagination(lastKey) : undefined;
 
     const { collections, pagination: nextPagination } =
-      await this.collectionService.findCollectionByTitle(q, limit, pagination);
+      await this.collectionService.findCollectionsByTitle(q, limit, pagination);
 
     const nextKey = nextPagination
       ? paginationToKey(nextPagination)
@@ -82,7 +86,24 @@ export class CollectionController {
     @Body(createZodValidationPipe(CreateCollectionRequestSchema))
     body: CreateCollectionRequest,
   ) {
-    return this.collectionService.createCollection(body);
+    const collection = await this.collectionService.createCollection(body);
+    const title = collection.title['en-US'];
+
+    if (title) await this.indexationService.indexCollection(title);
+
+    return { success: true };
+  }
+
+  @Patch(':id/reindex')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
+  async index(@Param('id') id: string) {
+    const collection = await this.collectionService.findCollectionById(id);
+    const title = collection?.title['en-US'];
+
+    if (title) await this.indexationService.indexCollection(title);
+
+    return { success: true };
   }
 
   @Get(':id')
