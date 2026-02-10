@@ -3,9 +3,9 @@ const mediaItems = ref([])
 
 for (let index = 0; index < 25; index++) {
     mediaItems.value.push({
-        title: "Over the garden wall",
-        thumbnailId: "290d14e2-7c88-4066-98f9-e5eee7be6875",
-        route: "/media/54752a4f-edbe-4e7d-97d4-3eb1bdde683b",
+        title: "CSGO",
+        thumbnailPath: "/videos/csgo.jpg",
+        route: "/media/69483b03dacf41264841a876",
         duration: 40,
         watchPercentage: 55
     });
@@ -18,23 +18,20 @@ for (let index = 0; index < 25; index++) {
         <HeroTrailer />
         <MediaCardContainer title="Continue watching" :amount="mediaItems.length" class="mt-5">
             <template v-for="item in mediaItems">
-                <MediaCard :title="item.title" :thumbnail-id="item.thumbnailId"
-                    :route="`/media/54752a4f-edbe-4e7d-97d4-3eb1bdde683b`" :duration="item.duration"
-                    :watch-percentage="item.watchPercentage" />
+                <MediaCard :title="item.title" :thumbnail-path="item.thumbnailPath" :route="item.route"
+                    :duration="item.duration" :watch-percentage="item.watchPercentage" />
             </template>
         </MediaCardContainer>
         <MediaCardContainer title="What others are watching" :amount="mediaItems.length" class="mt-5">
             <template v-for="item in mediaItems">
-                <MediaCard :title="item.title" :thumbnail-id="item.thumbnailId"
-                    :route="`/media/54752a4f-edbe-4e7d-97d4-3eb1bdde683b`" :duration="item.duration"
-                    :watch-percentage="item.watchPercentage" />
+                <MediaCard :title="item.title" :thumbnail-path="item.thumbnailPath" :route="item.route"
+                    :duration="item.duration" :watch-percentage="item.watchPercentage" />
             </template>
         </MediaCardContainer>
         <MediaCardContainer title="Best rated" :amount="mediaItems.length" class="mt-5">
             <template v-for="item in mediaItems">
-                <MediaCard :title="item.title" :thumbnail-id="item.thumbnailId"
-                    :route="`/media/54752a4f-edbe-4e7d-97d4-3eb1bdde683b`" :duration="item.duration"
-                    :watch-percentage="item.watchPercentage" />
+                <MediaCard :title="item.title" :thumbnail-path="item.thumbnailPath" :route="item.route"
+                    :duration="item.duration" :watch-percentage="item.watchPercentage" />
             </template>
         </MediaCardContainer>
     </div>

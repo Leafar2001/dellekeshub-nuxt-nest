@@ -32,7 +32,8 @@ export class AuthController {
   @UseGuards(SessionAuthGuard)
   getUser(@Req() req: Request) {
     const userId = req.session.userId;
-    return { userId }; // TODO: Return user from DB
+    const role = req.session.role;
+    return { userId, role }; // TODO: Return user from DB
   }
 
   @Post('register')
