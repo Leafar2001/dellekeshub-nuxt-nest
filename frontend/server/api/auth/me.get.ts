@@ -3,6 +3,7 @@ export default defineEventHandler(async (event) => {
     // Check if session cookie is present
     const cookie = getHeader(event, "cookie") || "";
     if (!cookie) throw createError({ statusCode: 401, statusMessage: "No session found" });
+    console.log(cookie)
 
     // Send the cookie to NestJS for verification
     try {
@@ -11,7 +12,7 @@ export default defineEventHandler(async (event) => {
             headers: { cookie: cookie },
             credentials: "include",
         });
-
+        
         return response;
     } catch (err: any) {
         // Forward NestJS status code

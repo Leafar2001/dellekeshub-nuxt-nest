@@ -4,9 +4,18 @@ export default defineEventHandler(async (event) => {
 
     try {
         // Make fetch to extern auth server with session cookie
-        const response:any = await $fetch(`${config.BACKEND_API_URL}/api/v1/auth/logout`, {
+        const response:any = await $fetch(`${config.BACKEND_API_URL}/auth/logout`, {
             method: "POST",
             headers: { cookie: cookie },
+        })
+        console.log("Logout response from backend:", response)
+
+        if (!response) {
+            throw createError({ statusCode: response.status, message: 'Logout failed' })
+        }
+        
+        deleteCookie(event, "sid", {
+            path: "/"
         })
 
         return { status: 200, message: "Logged out successfully" };
