@@ -8,46 +8,52 @@ import {
 } from 'src/lib/project';
 import type { LocalizedString } from '../../lib/validation/localization';
 
-export type CollectionDocument = Collection & Document;
-
-@Schema({ _id: false })
-class CollectionImage {
+@Schema({ timestamps: true })
+export class CollectionImage {
   @Prop({ type: Types.ObjectId, ref: 'Image', required: true })
   imageId: Types.ObjectId;
 
   @Prop({ type: [String], enum: imageTypes, required: true })
   type: ImageType;
-
-  @Prop({ default: () => new Date() })
-  addedAt: Date;
 }
 
-const CollectionImageSchema = SchemaFactory.createForClass(CollectionImage);
+export type CollectionImageDocument = CollectionImage & Document;
+export const CollectionImageSchema =
+  SchemaFactory.createForClass(CollectionImage);
 
-@Schema({ _id: false })
+@Schema({ timestamps: true })
 export class CollectionVideo {
   @Prop({ type: Types.ObjectId, ref: 'Video', required: true })
   videoId: Types.ObjectId;
 
+  @Prop({ type: Types.ObjectId, ref: 'Collection', required: true })
+  collectionId: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Season' })
+  seasonId?: Types.ObjectId;
+
   @Prop({ required: true })
   episodeNumber: number;
-
-  @Prop({ default: () => new Date() })
-  addedAt: Date;
 }
 
-const CollectionVideoSchema = SchemaFactory.createForClass(CollectionVideo);
+export type CollectionVideoDocument = CollectionVideo & Document;
+export const CollectionVideoSchema =
+  SchemaFactory.createForClass(CollectionVideo);
 
-@Schema({ _id: false })
+@Schema({ timestamps: true })
 export class Season {
-  @Prop({ type: [CollectionVideoSchema], default: [] })
-  episodes: CollectionVideo[];
+  @Prop({ type: Types.ObjectId, ref: 'Collection', required: true })
+  collectionId: Types.ObjectId;
 
   @Prop({ required: true })
   seasonNumber: number;
+
+  @Prop()
+  videoCount: number;
 }
 
-const SeasonSchema = SchemaFactory.createForClass(Season);
+export type SeasonDocument = Season & Document;
+export const SeasonSchema = SchemaFactory.createForClass(Season);
 
 @Schema({ timestamps: true })
 export class Collection {
@@ -63,17 +69,15 @@ export class Collection {
   @Prop({ type: [String], enum: collectionTypes, required: true })
   type: CollectionType;
 
-  @Prop({ type: [CollectionVideoSchema] })
-  videos: CollectionVideo[];
-
-  @Prop({ type: [SeasonSchema] })
-  seasons: Season[];
-
-  @Prop({ type: [CollectionImageSchema], default: [] })
-  images: CollectionImage[];
-
   @Prop({ type: Object })
   trailer?: LocalizedString;
+
+  @Prop()
+  seasonCount?: number;
+
+  @Prop()
+  videoCount: number;
 }
 
+export type CollectionDocument = Collection & Document;
 export const CollectionSchema = SchemaFactory.createForClass(Collection);

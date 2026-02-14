@@ -8,8 +8,6 @@ import {
 } from 'src/lib/project';
 import type { LocalizedString } from '../../lib/validation/localization';
 
-export type VideoDocument = Video & Document;
-
 @Schema()
 export class Subtitle {
   @Prop({ type: Types.ObjectId, required: true })
@@ -88,22 +86,32 @@ export class Video {
   subtitles: Subtitle[];
 
   @Prop()
-  duration?: number;
+  duration: number;
 
   @Prop()
-  introStart?: number;
+  width: number;
 
   @Prop()
-  introEnd?: number;
+  height: number;
 
   @Prop()
-  outroStart?: number;
+  size: number;
 
   @Prop()
-  outroEnd?: number;
+  introStart: number;
+
+  @Prop()
+  introEnd: number;
+
+  @Prop()
+  outroStart: number;
+
+  @Prop()
+  outroEnd: number;
 
   @Prop({ type: [VideoPersonSchema], default: [] })
   persons: VideoPerson[];
 }
 
+export type VideoDocument = Video & Document;
 export const VideoSchema = SchemaFactory.createForClass(Video);

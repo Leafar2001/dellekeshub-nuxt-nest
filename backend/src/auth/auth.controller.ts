@@ -42,7 +42,7 @@ export class AuthController {
     @Body(createZodValidationPipe(RegistrationRequestSchema))
     body: RegistrationRequest,
   ) {
-    const user = await this.authService.register(body.username, body.password);
+    const user = await this.authService.register(body);
     this.logger.log('New registered user:', user);
     if (user) return user;
   }

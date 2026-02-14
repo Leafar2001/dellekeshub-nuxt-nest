@@ -18,23 +18,17 @@ import {
   paginationToKey,
 } from '../../lib/utils/pagination-utils';
 import {
+  type UpdateCollectionRequest,
+  UpdateCollectionRequestSchema,
   type CreateCollectionRequest,
   CreateCollectionRequestSchema,
 } from '../validation/create-collection-request-schema';
 import { createZodValidationPipe } from '../../lib/utils/zod-validation';
-import {
-  type UpdateCollectionRequest,
-  UpdateCollectionRequestSchema,
-} from '../validation/update-collection-request-schema';
-import { IndexingService } from '../services/indexing.service';
 
 @Controller('collections')
 @UseGuards(SessionAuthGuard)
 export class CollectionController {
-  constructor(
-    private readonly collectionService: CollectionService,
-    private readonly indexationService: IndexingService,
-  ) {}
+  constructor(private readonly collectionService: CollectionService) {}
 
   @Get('all')
   async findAll(
@@ -86,10 +80,7 @@ export class CollectionController {
     @Body(createZodValidationPipe(CreateCollectionRequestSchema))
     body: CreateCollectionRequest,
   ) {
-    const collection = await this.collectionService.createCollection(body);
-    const title = collection.title['en-US'];
-
-    if (title) await this.indexationService.indexCollection(title);
+    await this.collectionService.createCollection(body);
 
     return { success: true };
   }
@@ -98,10 +89,7 @@ export class CollectionController {
   @UseGuards(RolesGuard)
   @Roles('admin')
   async index(@Param('id') id: string) {
-    const collection = await this.collectionService.findCollectionById(id);
-    const title = collection?.title['en-US'];
-
-    if (title) await this.indexationService.indexCollection(title);
+    await this.collectionService.findCollectionById(id);
 
     return { success: true };
   }

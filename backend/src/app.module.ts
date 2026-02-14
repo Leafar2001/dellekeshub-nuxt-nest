@@ -11,6 +11,8 @@ import { ReviewsModule } from './reviews/reviews.module';
 import { WatchProgressModule } from './watch-progress/watch-progress.module';
 import { StreamModule } from './stream/stream.module';
 import { ImageModule } from './images/image.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { IndexingModule } from './indexing/indexing.module';
 
 @Module({
   imports: [
@@ -18,6 +20,7 @@ import { ImageModule } from './images/image.module';
       isGlobal: true,
     }),
     MongooseModule.forRoot(`${process.env.MONGO_URI}`),
+    EventEmitterModule.forRoot(),
     UsersModule,
     AuthModule,
     VideoModule,
@@ -26,6 +29,7 @@ import { ImageModule } from './images/image.module';
     WatchProgressModule,
     StreamModule,
     ImageModule,
+    IndexingModule,
   ],
   controllers: [AppController],
   providers: [AppService],

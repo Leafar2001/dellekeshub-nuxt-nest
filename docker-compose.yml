@@ -1,0 +1,24 @@
+services:
+  mongo-init:
+    image: busybox
+    volumes:
+      - mongo-init-scripts:/init
+    command: >
+      sh -c '
+      [ -f /init/rs-init.js ] || echo "rs.initiate({_id:\"rs0\",members:[{_id:0,host:\"localhost:27017\"}]})" > /init/rs-init.js
+      '
+
+  mongo:
+    image: mongo:8.2
+    depends_on:
+      - mongo-init
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - mongo-init-scripts:/docker-entrypoint-initdb.d:ro
+
+volumes:
+  mongo-data:
+  mongo-init-scripts:
