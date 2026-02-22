@@ -36,7 +36,7 @@ async function loginUser(username, password) {
                     <Input v-model="inviteCode" type="text" placeholder="Invite code" autocomplete="one-time-code"
                         required />
                 </div>
-                <Button variant="outline" class="mb-2" type="submit">Sign up</button>
+                <Button variant="outline" class="mt-3 mb-2" type="submit">Sign up</button>
                 <p class="text-sm flex justify-center gap-1 text-muted-foreground">Back to <NuxtLink
                         class="text-special hover:underline" to="/login">
                         login

@@ -32,10 +32,11 @@ onMounted(() => {
     <div class="flex w-full justify-center">
         <div
             class="flex flex-col justify-center lg:flex-row animate-in fade-in slide-in-from-bottom-[5%] duration-500 border w-full min-h-[82vh] lg:max-h-[82vh] shadow-special/5 shadow-xl rounded-md bg-white/50 dark:bg-zinc-950/50 backdrop-blur-xl overflow-hidden">
+
             <div
-                class="flex flex-col items-center justify-center h-fit lg:h-full border-b lg:border-r p-6 z-10 relative max-h-[600px] lg:max-h-full lg:min-w-[350px] lg:max-w-[350px] overflow-hidden">
-                <img :src="backgroundGifs[7]" alt="background-gif"
-                    class="absolute top-0 left-0 h-full w-full aspect-auto object-cover z-0 opacity-50">
+                class="flex flex-col items-center h-fit lg:h-full p-6 z-10 relative border-b lg:border-b-0 lg:border-r max-h-[600px] lg:max-h-full lg:min-w-[350px] lg:max-w-[350px] overflow-hidden">
+                <img :src="backgroundGifs[11]" alt="background-gif"
+                    class="absolute top-0 left-0 h-full w-full aspect-auto object-cover z-0 opacity-20">
                 <Avatar
                     class="h-40 w-40 z-10 max-h-100 max-w-100 lg:h-[15vw] lg:w-[15vw] lg:min-w-60 lg:min-h-60 hover:border-special/30 dark:hover:border-special/30 hover:ring-special/30 dark:hover:ring-special/30 hover:ring-[4px] dark:hover:ring-[4px] cursor-pointer">
                     <AvatarImage src="https://avatars.githubusercontent.com/u/59648771?v=4&size=1048"
@@ -52,7 +53,7 @@ onMounted(() => {
                 <ProfileCardContainer title="Favorite movies">
                     <MediaCard v-for="i in 10" :key="i" title="Movie title" />
                 </ProfileCardContainer>
-                <ProfileCardContainer title="Achievements">
+                <!-- <ProfileCardContainer title="Achievements">
                     <MediaCard v-for="i in 10" :key="i" title="CSGO" />
                 </ProfileCardContainer>
                 <ProfileCardContainer title="Achievements">
@@ -60,12 +61,7 @@ onMounted(() => {
                 </ProfileCardContainer>
                 <ProfileCardContainer title="Reviews">
                     <ProfileCard></ProfileCard>
-                </ProfileCardContainer>
-                <!-- <div class="flex flex-col mb-2">
-                    <label for="color">Color</label>
-                    <input class="color-picker" type="color" :value="activeColor" @input="changeActiveColor"
-                        name="color">
-                </div> -->
+                </ProfileCardContainer> -->
             </div>
         </div>
     </div>

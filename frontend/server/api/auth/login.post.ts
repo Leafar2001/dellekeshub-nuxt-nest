@@ -32,7 +32,6 @@ export default defineEventHandler(async (event) => {
     }
 
     const cookieHeader = response.headers.get("set-cookie");
-    console.log("Received cookie from backend:", cookieHeader)
     if (cookieHeader) {
         // Pass cookie to the browser
         setHeader(event, 'set-cookie', cookieHeader)
