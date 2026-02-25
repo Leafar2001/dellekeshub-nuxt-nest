@@ -16,7 +16,7 @@ onMounted(() => {
 <template>
     <div class="flex w-full justify-center">
         <div
-            class="flex flex-col items-center justify-center md:flex-row animate-in fade-in slide-in-from-bottom-[5%] duration-500 border w-full rounded-md bg-white/50 dark:bg-zinc-950/50 backdrop-blur-xl">
+            class="flex flex-col items-center justify-center md:flex-row animate-in fade-in slide-in-from-bottom-[5%] duration-500 border w-full rounded-md bg-white/50 dark:bg-zinc-950/50">
             <div class="flex flex-col items-center justify-center h-full border-r p-6">
                 <Avatar
                     class="h-40 w-40 md:h-[10vw] md:w-[10vw] max-h-100 max-w-100 hover:border-special/30 dark:hover:border-special/30 hover:ring-special/30 dark:hover:ring-special/30 hover:ring-[4px] dark:hover:ring-[4px] cursor-pointer">

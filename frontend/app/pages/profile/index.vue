@@ -31,7 +31,7 @@ onMounted(() => {
 <template>
     <div class="flex w-full justify-center">
         <div
-            class="flex flex-col justify-center lg:flex-row animate-in fade-in slide-in-from-bottom-[5%] duration-500 border w-full min-h-[82vh] lg:max-h-[82vh] shadow-special/5 shadow-xl rounded-md bg-white/50 dark:bg-zinc-950/50 backdrop-blur-xl overflow-hidden">
+            class="flex flex-col justify-center lg:flex-row animate-in fade-in slide-in-from-bottom-[5%] duration-500 border w-full min-h-[82vh] lg:max-h-[82vh] shadow-special/5 shadow-xl rounded-md bg-white/50 dark:bg-zinc-950/50 overflow-hidden">
 
             <div
                 class="flex flex-col items-center h-fit lg:h-full p-6 z-10 relative border-b lg:border-b-0 lg:border-r max-h-[600px] lg:max-h-full lg:min-w-[350px] lg:max-w-[350px] overflow-hidden">
