@@ -2,9 +2,11 @@
 const users = await $fetch("/api/user/all")
 
 const editUserModal = ref({ show: false, user: undefined })
+const addUserModal = ref({ show: false })
+const isSearching = ref(false)
 const actionButtons = [
     { name: "Create media", path: "/", icon: "material-symbols-light:create-new-folder-outline-rounded" },
-    { name: "Upload media", path: "/", icon: "material-symbols-light:drive-folder-upload-outline-rounded" },
+    { name: "Server Folder Structure", path: "/", icon: "material-symbols-light:folder-open-outline-rounded" },
     { name: "Search torrents", path: "/", icon: "material-symbols-light:video-search-rounded" },
 ]
 
@@ -17,10 +19,11 @@ function showEditUserModal(user) {
 <template>
     <div class="animate-in fade-in slide-in-from-bottom-[5%] duration-500">
         <EditUserModal v-if="editUserModal.show" @close="editUserModal.show = false" :user="editUserModal.user" />
+        <AddUserModal v-if="addUserModal.show" @close="addUserModal.show = false" />
         <h1 class="text-3xl font-bold mb-1">Actions</h1>
         <div class="flex flex-col md:flex-row gap-3">
             <div v-for="button in actionButtons" :key="button.name"
-                class="flex flex-col grow items-center justify-center relative border hover:border-special overflow-hidden blob-parent p-4 md:h-60 rounded-md text-muted-foreground dark:text-zinc-300 hover:text-black dark:hover:text-white cursor-pointer dark:bg-zinc-950/20 bg-white/20 transition-all ease">
+                class="flex flex-col grow items-center justify-center relative border hover:border-special overflow-hidden blob-parent p-4 md:h-40 rounded-md text-muted-foreground dark:text-zinc-300 hover:text-black dark:hover:text-white cursor-pointer dark:bg-zinc-950/20 bg-white/20 transition-all ease">
                 <Icon :name="button.icon" size="64px" />
                 <span class="font-light">{{ button.name }}</span>
                 <!-- <div class="blob absolute bottom-0 w-full h-1 transition-all bg-special blur-3xl"></div> -->
@@ -37,9 +40,8 @@ function showEditUserModal(user) {
                 </span>
                 <Input ref="searchbar" id="search" type="text" placeholder="Search users..."
                     autocomplete="one-time-code"
-                    class="pl-7 w-full focus-visible:text-black dark:focus-visible:text-white focus-visible:placeholder:text-black dark:focus-visible:placeholder:text-white bg-transparent dark:bg-transparent"
-                    @focus="handleFocus" @blur="handleBlur" @input="handleSearchInput" />
-                <Button variant="outline" class="bg-transparent dark:bg-transparent">
+                    class="pl-7 w-full focus-visible:text-black dark:focus-visible:text-white focus-visible:placeholder:text-black dark:focus-visible:placeholder:text-white bg-transparent dark:bg-transparent" />
+                <Button variant="outline" class="bg-transparent dark:bg-transparent" @click="addUserModal.show = true">
                     <Icon name="material-symbols-light:person-add-outline-rounded" size="24px" />
                     New user
                 </Button>
