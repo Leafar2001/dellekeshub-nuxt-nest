@@ -1,9 +1,11 @@
 <script setup>
-const users = await $fetch("/api/user/all")
+import { toast } from 'vue-sonner'
+const { data: users, error, pending } = await useFetch("/api/user/all")
 
 const editUserModal = ref({ show: false, user: undefined })
 const addUserModal = ref({ show: false })
 const isSearching = ref(false)
+const refreshingUserList = ref({ loading: false, done: false })
 const actionButtons = [
     { name: "Create media", path: "/", icon: "material-symbols-light:create-new-folder-outline-rounded" },
     { name: "Server Folder Structure", path: "/", icon: "material-symbols-light:folder-open-outline-rounded" },
@@ -13,6 +15,21 @@ const actionButtons = [
 function showEditUserModal(user) {
     editUserModal.value = { show: true, user }
     console.log("Show edit user modal for user:", user)
+}
+
+async function refreshUserList() {
+    refreshingUserList.value = { loading: true, done: false }
+    try {
+        users.value = await $fetch("/api/user/all")
+
+        refreshingUserList.value = { loading: false, done: true }
+        setTimeout(() => {
+            refreshingUserList.value = { loading: false, done: false }
+        }, 2000)
+    } catch (error) {
+        refreshingUserList.value = { loading: false, done: false }
+        toast.error("Failed to refresh user list")
+    }
 }
 </script>
 
@@ -41,6 +58,25 @@ function showEditUserModal(user) {
                 <Input ref="searchbar" id="search" type="text" placeholder="Search users..."
                     autocomplete="one-time-code"
                     class="pl-7 w-full focus-visible:text-black dark:focus-visible:text-white focus-visible:placeholder:text-black dark:focus-visible:placeholder:text-white bg-transparent dark:bg-transparent" />
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger as-child>
+                            <Button variant="outline" :disabled="refreshingUserList.loading"
+                                class="bg-transparent dark:bg-transparent p-2" @click="refreshUserList">
+                                <div class="flex items-center justify-center"
+                                    :class="refreshingUserList.loading ? 'animate-spin' : ''">
+                                    <Icon v-if="refreshingUserList.done" name="material-symbols-light:check-rounded"
+                                        size="24px" />
+                                    <Icon v-else name="material-symbols-light:sync-rounded" class="scale-x-[-1]"
+                                        size="24px" />
+                                </div>
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Refresh users</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
                 <Button variant="outline" class="bg-transparent dark:bg-transparent" @click="addUserModal.show = true">
                     <Icon name="material-symbols-light:person-add-outline-rounded" size="24px" />
                     New user
