@@ -7,6 +7,7 @@ const navbarItems = ref([
     { name: "Browse", route: "/browse", icon: "ri:movie-2-line", auth: ["user", "admin"] },
     { name: "Watchlist", route: "/watchlist", icon: "ic:outline-remove-red-eye", auth: ["user", "admin"] },
     { name: "Profile", route: "/profile", icon: "material-symbols:account-box-outline", auth: ["user", "admin"] },
+    { name: "Settings", route: "/settings", icon: "fluent:settings-24-regular", auth: ["user", "admin"] },
     { name: "Admin", route: "/admin", icon: "eos-icons:admin-outlined", auth: ["admin"] }
 ])
 

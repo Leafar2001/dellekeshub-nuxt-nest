@@ -15,7 +15,7 @@ const nextVideo = ref(1)
 const overlayElement = ref()
 const countdownTimer = ref(0)
 
-const media = await $fetch(`${config.public.NUXT_API_URL}/api/media/${route.params.mediaId}`)
+const { data: media, error, pending } = await useFetch(`${config.public.NUXT_API_URL}/api/media/${route.params.mediaId}`)
 
 const videoInfo = computed(() => {
     if (!media.videos || media.videos.length === 0) return null

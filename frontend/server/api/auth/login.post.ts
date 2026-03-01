@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { setCookie } from "h3";
 import { loginSchema } from "../../utils/validationSchemas";
 
 const config = useRuntimeConfig()
@@ -35,13 +34,7 @@ export default defineEventHandler(async (event) => {
     const cookieHeader = response.headers.get("set-cookie");
     if (cookieHeader) {
         // Pass cookie to the browser
-        const [cookieName, cookieValue] = cookieHeader.split(";")[0].split("=");
-        setCookie(event, cookieName, cookieValue, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "lax",
-            path: "/",
-        });
+        setHeader(event, 'set-cookie', cookieHeader)
     }
 
     return { status: 200, message: "Logged in successfully" };
