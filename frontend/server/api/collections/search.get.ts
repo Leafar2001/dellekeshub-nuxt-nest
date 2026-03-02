@@ -5,12 +5,12 @@ export default defineEventHandler(async (event) => {
     if (!cookie) throw createError({ statusCode: 401, statusMessage: "No session found" });
 
     // Check if query is present
-    const mediaName = getQuery(event).title
-    if(!mediaName) throw createError({ statusCode: 401, statusMessage: "No search query found" });
+    const collectionName = getQuery(event).title
+    if(!collectionName) throw createError({ statusCode: 401, statusMessage: "No search query found" });
 
     // Send the media search query to backend
     try {
-        const response = await $fetch(`${config.BACKEND_API_URL}/collections/search?q=${mediaName}&limit=10`, {
+        const response = await $fetch(`${config.BACKEND_API_URL}/collections/search?q=${collectionName}&limit=10`, {
             method: "GET",
             headers: { cookie: cookie },
             credentials: "include",

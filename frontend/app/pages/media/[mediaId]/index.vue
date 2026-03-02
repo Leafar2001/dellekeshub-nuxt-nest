@@ -3,7 +3,7 @@ const route = useRoute()
 const config = useRuntimeConfig()
 const episodeContainer = ref()
 
-const media = await $fetch(`${config.public.NUXT_API_URL}/api/media/${route.params.mediaId}`)
+const media = await $fetch(`${config.public.NUXT_API_URL}/api/collections/${route.params.mediaId}`)
 
 function scrollHorizontal(e) {
     e.preventDefault();

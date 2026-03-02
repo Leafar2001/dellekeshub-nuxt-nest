@@ -4,13 +4,11 @@ export default defineEventHandler(async (event) => {
     const cookie = getHeader(event, "cookie") || "";
     if (!cookie) throw createError({ statusCode: 401, statusMessage: "No session found" });
 
-    // Check if query is present
-    const mediaName = getQuery(event).title
-    if(!mediaName) throw createError({ statusCode: 401, statusMessage: "No search query found" });
+    const collectionId = getRouterParam(event, 'collectionId')
 
-    // Send the media search query to backend
+    // Send the cookie to NestJS API for verification
     try {
-        const response = await $fetch(`${config.BACKEND_API_URL}/collections/search?q=${mediaName}&limit=10`, {
+        const response = await $fetch(`${config.BACKEND_API_URL}/collections/${collectionId}`, {
             method: "GET",
             headers: { cookie: cookie },
             credentials: "include",
@@ -18,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
         return response;
     } catch (err: any) {
-        // Forward backend status code
+        // Forward NestJS status code
         throw createError({ statusCode: err.response?.status || 500, statusMessage: err.message });
     }
 })

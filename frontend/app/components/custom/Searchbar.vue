@@ -2,7 +2,7 @@
 import { useDebounceFn } from '@vueuse/core'
 const icon = useTemplateRef('icon')
 const searchQuery = ref('')
-const mediaItems = ref([])
+const collections = ref([])
 const isSearching = ref(false)
 const showSearchItems = ref(false)
 const searchbar = ref()
@@ -12,14 +12,14 @@ async function fetchSearchResults(query) {
     if (!query) return
     try {
         isSearching.value = true
-        const response = await $fetch('/api/media/search', {
+        const response = await $fetch('/api/collections/search', {
             method: 'GET',
             params: { title: query }
         })
         console.log("search response", response)
-        mediaItems.value = response
+        collections.value = response
         isSearching.value = false
-        console.log("search items", mediaItems.value)
+        console.log("search items", collections.value)
     } catch (err) {
         console.error('Search failed:', err)
     }
@@ -64,19 +64,19 @@ function navigateToMedia(mediaId) {
         </div>
         <div v-if="showSearchItems"
             class="absolute top-11 p-1 w-full h-fit border rounded-md bg-white dark:bg-zinc-950 z-40">
-            <template v-if="mediaItems.length > 0" v-for="media in mediaItems">
+            <template v-if="collections.length > 0" v-for="collection in collections">
                 <div class="flex gap-3 px-2 py-2 cursor-pointer rounded-sm hover:bg-zinc-100 hover:dark:bg-zinc-900 hover:text-black dark:hover:text-white"
-                    @pointerdown.prevent="navigateToMedia(media._id)">
+                    @pointerdown.prevent="navigateToMedia(collection._id)">
                     <img class="w-12 aspect-[2/3] object-cover rounded-sm"
-                        :src="`http://localhost:3001/media/${media._id}/thumbnail`" alt="">
+                        :src="`http://localhost:3001/media/${collection._id}/thumbnail`" alt="">
                     <div class="flex flex-col">
-                        <span class="text-xl font-medium">{{ media.title }}</span>
-                        <span class="text-sm font-light">{{ media.year }}</span>
-                        <span>{{ media.thumbnailPath }}</span>
+                        <span class="text-xl font-medium">{{ collection.title['en-US'] }}</span>
+                        <!-- <span class="text-sm font-light">{{ collection.year }}</span> -->
+                        <!-- <span>{{ collection.thumbnailPath }}</span> -->
                     </div>
                 </div>
             </template>
-            <template v-if="mediaItems.length == 0">
+            <template v-if="collections.length == 0">
                 <div class="flex items-center gap-2 px-2 py-2 rounded-sm">
                     <Icon name="gridicons:cross-circle" size="16px" />
                     No records can be found...

@@ -1,7 +1,6 @@
 <script setup>
 import { toast } from 'vue-sonner'
 
-const config = useRuntimeConfig()
 const username = ref("")
 const password = ref("")
 const errorText = ref("")
@@ -51,7 +50,6 @@ const emit = defineEmits([
                 </SelectTrigger>
                 <SelectContent class="z-90">
                     <SelectGroup>
-                        <SelectLabel>Roles</SelectLabel>
                         <template v-for="role in roles">
                             <SelectItem :value="role">
                                 {{ role.charAt(0).toUpperCase() + role.slice(1) }}
@@ -62,7 +60,7 @@ const emit = defineEmits([
             </Select>
         </div>
         <div class="flex gap-2 justify-between mt-16">
-            <Button variant="outline" @click="toast.success('User created successfully')">
+            <Button variant="outline" @click="emit('close')">
                 Cancel
             </Button>
             <Button variant="special" @click="createNewUser">
