@@ -8,41 +8,55 @@ import {
 } from 'src/lib/project';
 import type { LocalizedString } from '../../lib/validation/localization';
 
-@Schema({ timestamps: true })
-export class CollectionImage {
-  @Prop({ type: Types.ObjectId, ref: 'Image', required: true })
+@Schema({ collection: 'collection_images', timestamps: true })
+export class CollectionImageEntity {
+  @Prop({ type: Types.ObjectId, ref: 'ImageEntity', required: true })
   imageId: Types.ObjectId;
 
   @Prop({ type: [String], enum: imageTypes, required: true })
   type: ImageType;
 }
 
-export type CollectionImageDocument = CollectionImage & Document;
-export const CollectionImageSchema =
-  SchemaFactory.createForClass(CollectionImage);
+export type CollectionImage = Omit<CollectionImageEntity, keyof Document> & {
+  id: string;
+};
+export type CollectionImageDocument = CollectionImageEntity & Document;
+export const CollectionImageSchema = SchemaFactory.createForClass(
+  CollectionImageEntity,
+);
 
-@Schema({ timestamps: true })
-export class CollectionVideo {
-  @Prop({ type: Types.ObjectId, ref: 'Video', required: true })
+@Schema({ collection: 'collection_videos', timestamps: true })
+export class CollectionVideoEntity {
+  @Prop({ type: Types.ObjectId, ref: 'VideoEntity', required: true })
   videoId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Collection', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'CollectionEntity', required: true })
   collectionId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Season' })
+  @Prop({ type: Types.ObjectId, ref: 'SeasonEntity' })
   seasonId?: Types.ObjectId;
 
   @Prop({ required: true })
   episodeNumber: number;
 }
 
-export type CollectionVideoDocument = CollectionVideo & Document;
-export const CollectionVideoSchema =
-  SchemaFactory.createForClass(CollectionVideo);
+export type CollectionVideo = Omit<
+  CollectionVideoEntity,
+  keyof Document | 'videoId' | 'collectionId' | 'seasonId'
+> & {
+  id: string;
+  videoId: string;
+  collectionId: string;
+  seasonId?: string;
+};
+export type CollectionVideoDocument = CollectionVideoEntity & Document;
+export const CollectionVideoSchema = SchemaFactory.createForClass(
+  CollectionVideoEntity,
+);
 
-@Schema({ timestamps: true })
-export class Season {
-  @Prop({ type: Types.ObjectId, ref: 'Collection', required: true })
+@Schema({ collection: 'seasons', timestamps: true })
+export class SeasonEntity {
+  @Prop({ type: Types.ObjectId, ref: 'CollectionEntity', required: true })
   collectionId: Types.ObjectId;
 
   @Prop({ required: true })
@@ -52,11 +66,14 @@ export class Season {
   videoCount: number;
 }
 
-export type SeasonDocument = Season & Document;
-export const SeasonSchema = SchemaFactory.createForClass(Season);
+export type Season = Omit<SeasonEntity, keyof Document> & {
+  id: string;
+};
+export type SeasonDocument = SeasonEntity & Document;
+export const SeasonSchema = SchemaFactory.createForClass(SeasonEntity);
 
-@Schema({ timestamps: true })
-export class Collection {
+@Schema({ collection: 'collections', timestamps: true })
+export class CollectionEntity {
   @Prop({ type: Object, required: true })
   title: LocalizedString;
 
@@ -79,5 +96,8 @@ export class Collection {
   videoCount: number;
 }
 
-export type CollectionDocument = Collection & Document;
-export const CollectionSchema = SchemaFactory.createForClass(Collection);
+export type Collection = Omit<CollectionEntity, keyof Document> & {
+  id: string;
+};
+export type CollectionDocument = CollectionEntity & Document;
+export const CollectionSchema = SchemaFactory.createForClass(CollectionEntity);

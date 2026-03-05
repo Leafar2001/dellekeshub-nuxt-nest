@@ -4,6 +4,8 @@ import { VideoService } from '../../videos/services/video.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import { destructVideoPath } from '../../lib/utils/path-utils';
 import { CollectionService } from '../../collections/services/collection.service';
+import { Video } from '../../videos/persistence/video.schema';
+import { CollectionVideo } from '../../collections/persistence/collection.schema';
 
 @Injectable()
 export class CollectionIndexingService {
@@ -15,7 +17,8 @@ export class CollectionIndexingService {
   ) {}
 
   @OnEvent('collection.created')
-  async handleCollectionCreatedEvent(event: { collectionId: string }) {
+  @OnEvent('collection.reindex')
+  async indexCollection(event: { collectionId: string }) {
     const collection = await this.collectionService.findCollectionById(
       event.collectionId,
     );
@@ -40,7 +43,10 @@ export class CollectionIndexingService {
       return;
     }
 
-    await this.createVideos(directoryPath);
+    const videos = await this.createVideos(directoryPath);
+
+    // Deletes all videos that are not in the collection anymore
+    await this.deleteVideos(collection.id, videos);
 
     this.logger.log(`Finished indexing collection: (${name})!`);
   }
@@ -57,14 +63,28 @@ export class CollectionIndexingService {
     }
   }
 
-  async createVideos(directoryPath: string) {
+  /**
+   * Returns all videos that got created or already exist for given collection
+   * */
+  async createVideos(directoryPath: string): Promise<Video[]> {
     const videosStream = fg.stream(`${directoryPath}/**/*.mp4`, {
       deep: 2,
       onlyFiles: true,
       caseSensitiveMatch: false,
     });
 
+    const videos: Video[] = [];
+
     for await (const videoPath of videosStream) {
+      // Check if video already exists
+      const existingVideo = await this.videoService.findVideoByPath(
+        videoPath as string,
+      );
+      if (existingVideo) {
+        videos.push(existingVideo);
+        continue;
+      }
+
       const res = destructVideoPath(videoPath.toString());
       if (!res) {
         this.logger.warn(`Invalid video path: ${videoPath.toString()}`);
@@ -74,12 +94,40 @@ export class CollectionIndexingService {
       const { videoName } = res;
 
       // Adding the video to the collection is done in the video indexing service
-      await this.videoService.createVideo({
+      const video = await this.videoService.createVideo({
         title: {
           'en-US': videoName,
         },
         path: videoPath.toString(),
       });
+
+      videos.push(video);
+    }
+
+    return videos;
+  }
+
+  async deleteVideos(collectionId: string, excludedVideos: Video[]) {
+    const excludedPaths = new Set(...excludedVideos.map((video) => video.path));
+
+    for (const collectionVideo of await this.collectionService.getAllCollectionVideosByCollectionId(
+      collectionId,
+    )) {
+      if (excludedPaths.has(collectionVideo.path)) {
+        continue;
+      }
+
+      // Remove video from collection
+      await this.collectionService.removeVideoFromCollection(
+        collectionId,
+        collectionVideo.videoId,
+        collectionVideo.episodeNumber,
+        collectionVideo.seasonId,
+      );
+
+      // Delete video
+      this.logger.log(`Deleting video: (${collectionVideo.videoId})`);
+      await this.videoService.deleteVideo(collectionVideo.videoId);
     }
   }
 }

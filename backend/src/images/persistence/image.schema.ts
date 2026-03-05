@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type ImageDocument = Image & Document;
+export type ImageDocument = ImageEntity & Document;
 
-@Schema({ timestamps: true })
-export class Image {
+@Schema({ collection: 'images', timestamps: true })
+export class ImageEntity {
   @Prop({ required: true })
   path: string;
 
@@ -24,4 +24,4 @@ export class Image {
   height: number;
 }
 
-export const ImageSchema = SchemaFactory.createForClass(Image);
+export const ImageSchema = SchemaFactory.createForClass(ImageEntity);

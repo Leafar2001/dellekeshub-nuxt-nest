@@ -3,14 +3,14 @@ import { WatchProgressService } from './watch-progress.service';
 import { WatchProgressController } from './watch-progress.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
-  WatchProgress,
+  WatchProgressEntity,
   WatchProgressSchema,
 } from './persistence/watch-progress.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: WatchProgress.name, schema: WatchProgressSchema },
+      { name: WatchProgressEntity.name, schema: WatchProgressSchema },
     ]),
   ],
   providers: [WatchProgressService],

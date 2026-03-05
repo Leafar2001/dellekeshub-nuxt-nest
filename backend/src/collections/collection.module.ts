@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import {
-  Collection,
-  CollectionImage,
+  CollectionEntity,
+  CollectionImageEntity,
   CollectionImageSchema,
   CollectionSchema,
-  CollectionVideo,
+  CollectionVideoEntity,
   CollectionVideoSchema,
-  Season,
+  SeasonEntity,
   SeasonSchema,
 } from './persistence/collection.schema';
 import { CollectionController } from './controllers/collection.controller';
@@ -17,10 +17,10 @@ import { VideoModule } from '../videos/video.module';
 @Module({
   imports: [
     MongooseModule.forFeature([
-      { name: Collection.name, schema: CollectionSchema },
-      { name: Season.name, schema: SeasonSchema },
-      { name: CollectionImage.name, schema: CollectionImageSchema },
-      { name: CollectionVideo.name, schema: CollectionVideoSchema },
+      { name: CollectionEntity.name, schema: CollectionSchema },
+      { name: SeasonEntity.name, schema: SeasonSchema },
+      { name: CollectionImageEntity.name, schema: CollectionImageSchema },
+      { name: CollectionVideoEntity.name, schema: CollectionVideoSchema },
     ]),
     VideoModule,
   ],

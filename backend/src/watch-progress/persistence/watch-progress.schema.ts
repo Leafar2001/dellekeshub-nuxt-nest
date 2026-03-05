@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-export type WatchProgressDocument = WatchProgress & Document;
+export type WatchProgressDocument = WatchProgressEntity & Document;
 
-@Schema({ timestamps: true })
-export class WatchProgress {
+@Schema({ collection: 'watch_progress', timestamps: true })
+export class WatchProgressEntity {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
@@ -24,6 +24,7 @@ export class WatchProgress {
   finished: boolean;
 }
 
-export const WatchProgressSchema = SchemaFactory.createForClass(WatchProgress);
+export const WatchProgressSchema =
+  SchemaFactory.createForClass(WatchProgressEntity);
 
 WatchProgressSchema.index({ userId: 1, mediaId: 1 }, { unique: true });

@@ -2,10 +2,10 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { type LocalizedString } from '../../lib/validation/localization';
 
-export type PersonDocument = Person & Document;
+export type PersonDocument = PersonEntity & Document;
 
-@Schema({ timestamps: true })
-export class Person {
+@Schema({ collection: 'persons', timestamps: true })
+export class PersonEntity {
   @Prop({ required: true })
   firstname: string;
 
@@ -16,4 +16,4 @@ export class Person {
   description?: LocalizedString;
 }
 
-export const PersonSchema = SchemaFactory.createForClass(Person);
+export const PersonSchema = SchemaFactory.createForClass(PersonEntity);

@@ -25,51 +25,54 @@ export function destructSubtitlePath(subtitlePath: string):
 export function destructVideoPath(videoPath: string):
   | {
       videoName: string;
-      folderName: string;
-      folderPath: string;
+      collectionName: string;
+      collectionPath: string;
       seasonNumber?: number;
+      seasonName?: string;
     }
   | undefined {
-  const normalized = videoPath.replace(/\\/g, '/');
-  const parts = normalized.split('/');
+  if (!videoPath) return undefined;
 
-  const videosIndex = parts.findIndex((p) => p.toLowerCase() === 'videos1');
-  if (videosIndex === -1 || videosIndex + 1 >= parts.length) {
-    return undefined;
-  }
+  const hasDotPrefix = videoPath.startsWith('./');
 
-  const folderName = parts[videosIndex + 1];
-  const folderPath = parts.slice(0, videosIndex + 1).join('/');
-
-  // Look for a folder containing 'season' (case-insensitive) after seriesOrMovie folder
-  let seasonNumber: number | undefined;
-  for (let i = videosIndex + 2; i < parts.length - 1; i++) {
-    if (/season/i.test(parts[i])) {
-      // Extract only digits from the season folder name
-      const digits = parts[i].replace(/\D/g, '');
-      if (digits.length > 0) {
-        seasonNumber = parseInt(digits, 10);
-        break;
-      }
-    }
-  }
+  const parts = videoPath.replace(/^\.\//, '').split('/').filter(Boolean);
+  if (parts.length < 2) return undefined;
 
   const fileName = parts[parts.length - 1];
-  const nameWithoutExt = fileName.replace(/\.[^/.]+$/, '');
+  if (!fileName.includes('.')) return undefined;
 
-  let videoName = nameWithoutExt;
-  if (seasonNumber) {
-    const episodeMatch = nameWithoutExt.match(/S\d{2}E\d{2}\s*-\s*(.+)/i);
-    if (episodeMatch) {
-      videoName = episodeMatch[1].trim();
+  const videoName = fileName.replace(/\.[^/.]+$/, '');
+
+  const possibleSeason = parts[parts.length - 2];
+  const hasSeason = /^season\s*\d+/i.test(possibleSeason);
+
+  const collectionName = hasSeason
+    ? parts[parts.length - 3]
+    : parts[parts.length - 2];
+
+  const collectionIndex = parts.indexOf(collectionName);
+  if (collectionIndex === -1) return undefined;
+
+  const collectionPath =
+    (hasDotPrefix ? './' : '') + parts.slice(0, collectionIndex + 1).join('/');
+
+  let seasonNumber: number | undefined;
+  let seasonName: string | undefined;
+
+  if (hasSeason) {
+    seasonName = possibleSeason;
+    const match = possibleSeason.match(/\d+/);
+    if (match) {
+      seasonNumber = parseInt(match[0], 10);
     }
   }
 
   return {
-    folderName,
-    seasonNumber,
-    folderPath,
     videoName,
+    collectionName,
+    collectionPath,
+    ...(seasonNumber !== undefined && { seasonNumber }),
+    ...(seasonName !== undefined && { seasonName }),
   };
 }
 

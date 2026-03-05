@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Video, VideoSchema } from './persistence/video.schema';
+import { VideoEntity, VideoSchema } from './persistence/video.schema';
 import { VideoService } from './services/video.service';
 import { ImageModule } from '../images/image.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: Video.name, schema: VideoSchema }]),
+    MongooseModule.forFeature([
+      { name: VideoEntity.name, schema: VideoSchema },
+    ]),
     ImageModule,
   ],
   providers: [VideoService],

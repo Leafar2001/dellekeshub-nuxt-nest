@@ -1,29 +1,33 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import {
-  Collection,
+  CollectionEntity,
   CollectionDocument,
-  CollectionVideo,
+  CollectionVideoEntity,
   CollectionVideoDocument,
-  Season,
+  SeasonEntity,
   SeasonDocument,
+  CollectionVideo,
+  Season,
+  Collection,
 } from '../persistence/collection.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Pagination } from '../../lib/validation/pagination';
 import { queryResultToPagination } from '../../lib/utils/pagination-utils';
 import { CreateCollectionRequest } from '../validation/create-collection-request-schema';
 import { generateSlugLocalizedString } from '../../lib/utils/slug-utils';
 import { Connection } from 'mongoose';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { toDomain, toDomainLean } from '../../lib/utils/mongodb-utils';
 
 @Injectable()
 export class CollectionService {
   constructor(
-    @InjectModel(Collection.name)
+    @InjectModel(CollectionEntity.name)
     private collectionModel: Model<CollectionDocument>,
-    @InjectModel(CollectionVideo.name)
+    @InjectModel(CollectionVideoEntity.name)
     private collectionVideoModel: Model<CollectionVideoDocument>,
-    @InjectModel(Season.name)
+    @InjectModel(SeasonEntity.name)
     private seasonModel: Model<SeasonDocument>,
     @InjectConnection()
     private readonly connection: Connection,
@@ -34,7 +38,7 @@ export class CollectionService {
     limit: number = 20,
     pagination?: Pagination,
   ): Promise<{
-    collections: CollectionDocument[];
+    collections: Collection[];
     pagination: Pagination | undefined;
   }> {
     const query = pagination
@@ -53,22 +57,30 @@ export class CollectionService {
       .find(query)
       .sort({ createdAt: -1, _id: -1 })
       .limit(limit)
-      .exec();
+      .lean();
 
     return {
-      collections: queryResult,
+      collections: queryResult
+        .map((collectionDocument) => toDomainLean(collectionDocument))
+        .filter((collection) => collection !== undefined),
       pagination: queryResultToPagination(queryResult),
     };
   }
 
-  async findCollectionById(id: string) {
-    return this.collectionModel.findById(id);
+  async findCollectionById(id: string): Promise<Collection | undefined> {
+    const collectionDocument = await this.collectionModel.findById(id).lean();
+
+    return toDomainLean(collectionDocument);
   }
 
-  async findCollectionByTitle(
-    title: string,
-  ): Promise<CollectionDocument | null> {
-    return this.collectionModel.findOne({ 'title.en-US': title });
+  async findCollectionByTitle(title: string): Promise<Collection | undefined> {
+    const collectionDocument = await this.collectionModel
+      .findOne({
+        'title.en-US': title,
+      })
+      .lean();
+
+    return toDomainLean(collectionDocument);
   }
 
   async findCollectionsByTitle(
@@ -76,7 +88,7 @@ export class CollectionService {
     limit: number = 20,
     pagination?: Pagination,
   ): Promise<{
-    collections: CollectionDocument[];
+    collections: Collection[];
     pagination: Pagination | undefined;
   }> {
     const regex = new RegExp(title.split('').join('.*'), 'i');
@@ -100,17 +112,17 @@ export class CollectionService {
       .find(query)
       .sort({ createdAt: -1, _id: -1 })
       .limit(limit)
-      .exec();
+      .lean();
 
     return {
-      collections: queryResult,
+      collections: queryResult
+        .map((collectionDocument) => toDomainLean(collectionDocument))
+        .filter((collection) => collection !== undefined),
       pagination: queryResultToPagination(queryResult),
     };
   }
 
-  async createCollection(
-    body: CreateCollectionRequest,
-  ): Promise<CollectionDocument> {
+  async createCollection(body: CreateCollectionRequest): Promise<Collection> {
     const existingCollection = await this.collectionModel.findOne({
       'title.en-US': body.title['en-US'],
     });
@@ -119,29 +131,42 @@ export class CollectionService {
       throw new ConflictException('Collection title already exists');
     }
 
-    const collection = await this.collectionModel.create({
+    const collectionDocument = await this.collectionModel.create({
       ...body,
       slug: generateSlugLocalizedString(body.title),
     });
 
     this.eventEmitter.emit('collection.created', {
-      collectionId: collection._id.toString(),
+      collectionId: collectionDocument._id.toString(),
     });
-    return collection;
+
+    return toDomain(collectionDocument) as Collection;
+  }
+
+  reindexCollection(collectionId: string) {
+    this.eventEmitter.emit('collection.reindex', {
+      collectionId,
+    });
   }
 
   async updateCollection(
     id: string,
-    body: Partial<Collection>,
-  ): Promise<CollectionDocument | null> {
-    return this.collectionModel.findByIdAndUpdate(
-      id,
-      {
-        ...body,
-        slug: body.title ? generateSlugLocalizedString(body.title) : undefined,
-      },
-      { new: true },
-    );
+    body: Partial<CollectionEntity>,
+  ): Promise<Collection | undefined> {
+    const collection = await this.collectionModel
+      .findByIdAndUpdate(
+        id,
+        {
+          ...body,
+          slug: body.title
+            ? generateSlugLocalizedString(body.title)
+            : undefined,
+        },
+        { new: true },
+      )
+      .lean();
+
+    return toDomainLean(collection);
   }
 
   async deleteCollection(id: string): Promise<CollectionDocument | null> {
@@ -151,18 +176,25 @@ export class CollectionService {
   async getSeason(
     collectionId: string,
     seasonNumber: number,
-  ): Promise<SeasonDocument | null> {
-    return this.seasonModel.findOne({ collectionId, seasonNumber });
+  ): Promise<Season | undefined> {
+    const seasonDocument = await this.seasonModel.findOne({
+      collectionId,
+      seasonNumber,
+    });
+
+    return toDomain(seasonDocument);
   }
 
   async createSeason(
     collectionId: string,
     seasonNumber: number,
-  ): Promise<SeasonDocument | null> {
-    return await this.seasonModel.create({
+  ): Promise<Season | undefined> {
+    const seasonDocument = await this.seasonModel.create({
       collectionId,
       seasonNumber,
     });
+
+    return toDomain(seasonDocument);
   }
 
   async addVideoToCollection(
@@ -205,5 +237,67 @@ export class CollectionService {
     } finally {
       await session.endSession();
     }
+  }
+
+  async removeVideoFromCollection(
+    collectionId: string,
+    videoId: string,
+    episodeNumber: number,
+    seasonId?: string,
+  ) {
+    const session = await this.connection.startSession();
+
+    try {
+      await session.withTransaction(async () => {
+        // Remove the episode
+        await this.collectionVideoModel.deleteOne(
+          {
+            collectionId,
+            seasonId,
+            videoId,
+            episodeNumber,
+          },
+          { session },
+        );
+
+        // Decrement videoCount in Collection
+        await this.collectionModel.updateOne(
+          { _id: collectionId },
+          { $inc: { videoCount: -1 } },
+          { session },
+        );
+
+        // Decrement videoCount in Season
+        await this.seasonModel.updateOne(
+          { _id: seasonId },
+          { $inc: { videoCount: -1 } },
+          { session },
+        );
+      });
+    } finally {
+      await session.endSession();
+    }
+  }
+
+  async getAllCollectionVideosByCollectionId(collectionId: string): Promise<
+    (Omit<CollectionVideo, 'videoId'> & { videoId: string | undefined } & {
+      path: string | undefined;
+    })[]
+  > {
+    const result = await this.collectionVideoModel
+      .find({ collectionId })
+      .populate<{
+        videoId: { _id: Types.ObjectId; path: string };
+      }>('videoId', 'path')
+      .exec();
+
+    return result.map((item) => ({
+      ...item,
+      id: item._id.toString(),
+      videoId: item.videoId?._id?.toString(),
+      collectionId: item.collectionId.toString(),
+      seasonId: item.seasonId?.toString(),
+      path: item.videoId?.path,
+    }));
   }
 }

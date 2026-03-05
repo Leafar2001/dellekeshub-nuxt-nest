@@ -69,25 +69,29 @@ export async function snapshotAtPercentage(
   await mkdir(outputFolder, { recursive: true });
 
   return new Promise((resolve, reject) => {
+    const outputPath = path
+      .join(outputFolder, outputFilename)
+      .replace(/\\/g, '/');
+
     ffmpeg(videoPath)
-      .outputOptions([
-        '-vf',
-        'crop=' +
-          'if(gt(a,3/2),ih*3/2,iw):' +
-          'if(gt(a,3/2),ih,iw*2/3),' +
-          'scale=1500:1000',
+      .seekInput(timestamp)
+      .videoFilters([
+        {
+          filter: 'crop',
+          options: {
+            w: 'if(gt(a,3/2),ih*3/2,iw)',
+            h: 'if(gt(a,3/2),ih,iw*2/3)',
+          },
+        },
+        {
+          filter: 'scale',
+          options: '1500:1000',
+        },
       ])
-      .screenshots({
-        timestamps: [timestamp],
-        filename: outputFilename,
-        folder: outputFolder,
-      })
+      .outputOptions('-frames:v 1')
+      .output(outputPath)
       .on('end', () => {
-        // Return relative path from the current working directory
-        const relativePath = path.relative(
-          process.cwd(),
-          path.join(outputFolder, outputFilename),
-        );
+        const relativePath = path.relative(process.cwd(), outputPath);
         resolve({
           path: './' + relativePath.replace(/\\/g, '/'),
           timestamp,
@@ -96,6 +100,7 @@ export async function snapshotAtPercentage(
           height: 1000,
         });
       })
-      .on('error', (err) => reject(err));
+      .on('error', reject)
+      .run();
   });
 }

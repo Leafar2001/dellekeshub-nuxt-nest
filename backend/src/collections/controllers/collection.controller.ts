@@ -8,6 +8,7 @@ import {
   Body,
   UseGuards,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { SessionAuthGuard } from '../../auth/middleware/session.guard';
 import { RolesGuard } from '../../auth/middleware/roles.guard';
@@ -89,7 +90,12 @@ export class CollectionController {
   @UseGuards(RolesGuard)
   @Roles('admin')
   async index(@Param('id') id: string) {
-    await this.collectionService.findCollectionById(id);
+    const collection = await this.collectionService.findCollectionById(id);
+    if (!collection) {
+      throw new NotFoundException('Collection not found');
+    }
+
+    this.collectionService.reindexCollection(id);
 
     return { success: true };
   }

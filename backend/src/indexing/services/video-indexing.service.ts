@@ -1,10 +1,7 @@
 import fg from 'fast-glob';
 import { Injectable, Logger } from '@nestjs/common';
 import { VideoService } from '../../videos/services/video.service';
-import {
-  Subtitle,
-  type VideoDocument,
-} from '../../videos/persistence/video.schema';
+import { SubtitleEntity, Video } from '../../videos/persistence/video.schema';
 import { Types } from 'mongoose';
 import { OnEvent } from '@nestjs/event-emitter';
 import { CollectionService } from '../../collections/services/collection.service';
@@ -13,6 +10,7 @@ import {
   destructVideoPath,
   getFileIndex,
 } from '../../lib/utils/path-utils';
+import path from 'node:path';
 
 @Injectable()
 export class VideoIndexingService {
@@ -70,40 +68,50 @@ export class VideoIndexingService {
       return;
     }
 
-    const { videoName, folderName, folderPath, seasonNumber } = res;
+    const {
+      videoName,
+      collectionName,
+      collectionPath,
+      seasonNumber,
+      seasonName,
+    } = res;
 
     this.logger.log(
       `Indexing video: (${videoName})${seasonNumber ? `, season: (${seasonNumber})` : ''}...`,
     );
 
     const collection =
-      await this.collectionService.findCollectionByTitle(folderName);
+      await this.collectionService.findCollectionByTitle(collectionName);
     if (!collection) {
       return;
     }
 
-    const episodeNumber = getFileIndex(folderPath, videoName) + 1;
+    const episodeNumber =
+      getFileIndex(
+        seasonName ? path.join(collectionPath, seasonName) : collectionPath,
+        videoName,
+      ) + 1;
 
     const season = seasonNumber
       ? ((await this.collectionService.getSeason(
-          collection._id.toString(),
+          collection.id,
           seasonNumber,
         )) ??
         (await this.collectionService.createSeason(
-          collection._id.toString(),
+          collection.id,
           seasonNumber,
         )))
       : undefined;
 
     return this.collectionService.addVideoToCollection(
-      collection._id.toString(),
-      video._id.toString(),
+      collection.id,
+      video.id,
       episodeNumber,
-      season?._id.toString(),
+      season?.id,
     );
   }
 
-  async indexSubtitles(video: VideoDocument) {
+  async indexSubtitles(video: Video) {
     const videoPathWithoutExtension = video.path.replace(/\.mp4$/, '');
 
     const subtitleStream = fg.stream(`${videoPathWithoutExtension}*.vtt`, {
@@ -112,7 +120,7 @@ export class VideoIndexingService {
       caseSensitiveMatch: false,
     });
 
-    const subtitles: Subtitle[] = [];
+    const subtitles: SubtitleEntity[] = [];
 
     for await (const subtitlePath of subtitleStream) {
       const result = destructSubtitlePath(subtitlePath.toString());
@@ -130,7 +138,7 @@ export class VideoIndexingService {
       });
     }
 
-    return this.videoService.updateVideo(video._id.toString(), {
+    return this.videoService.updateVideo(video.id, {
       ...video,
       subtitles,
     });

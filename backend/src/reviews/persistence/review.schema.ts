@@ -1,10 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Types, Document } from 'mongoose';
 
-export type ReviewDocument = Review & Document;
+export type ReviewDocument = ReviewEntity & Document;
 
-@Schema({ timestamps: true })
-export class Review {
+@Schema({ collection: 'reviews', timestamps: true })
+export class ReviewEntity {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
@@ -18,6 +18,6 @@ export class Review {
   comment: string;
 }
 
-export const ReviewSchema = SchemaFactory.createForClass(Review);
+export const ReviewSchema = SchemaFactory.createForClass(ReviewEntity);
 
 ReviewSchema.index({ userId: 1, mediaId: 1 }, { unique: true }); // Max 1 review per user per media

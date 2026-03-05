@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import {
-  WatchProgress,
+  WatchProgressEntity,
   WatchProgressDocument,
 } from './persistence/watch-progress.schema';
 import { Model } from 'mongoose';
@@ -9,7 +9,7 @@ import { Model } from 'mongoose';
 @Injectable()
 export class WatchProgressService {
   constructor(
-    @InjectModel(WatchProgress.name)
+    @InjectModel(WatchProgressEntity.name)
     private model: Model<WatchProgressDocument>,
   ) {}
 

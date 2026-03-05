@@ -8,8 +8,8 @@ import {
 } from 'src/lib/project';
 import type { LocalizedString } from '../../lib/validation/localization';
 
-@Schema()
-export class Subtitle {
+@Schema({ collection: 'subtitles' })
+export class SubtitleEntity {
   @Prop({ type: Types.ObjectId, required: true })
   _id: Types.ObjectId;
 
@@ -26,11 +26,14 @@ export class Subtitle {
   addedAt: Date;
 }
 
-const SubtitleSchema = SchemaFactory.createForClass(Subtitle);
+export type Subtitle = Omit<SubtitleEntity, keyof Document> & {
+  id: string;
+};
+const SubtitleSchema = SchemaFactory.createForClass(SubtitleEntity);
 
-@Schema({ _id: false })
-class VideoPerson {
-  @Prop({ type: Types.ObjectId, ref: 'Person', required: true })
+@Schema({ collection: 'video_persons', _id: false })
+class VideoPersonEntity {
+  @Prop({ type: Types.ObjectId, ref: 'PersonEntity', required: true })
   personId: Types.ObjectId;
 
   @Prop({ type: [String], enum: personRoles })
@@ -40,11 +43,12 @@ class VideoPerson {
   addedAt: Date;
 }
 
-const VideoPersonSchema = SchemaFactory.createForClass(VideoPerson);
+export type VideoPerson = Omit<VideoPersonEntity, keyof Document>;
+const VideoPersonSchema = SchemaFactory.createForClass(VideoPersonEntity);
 
-@Schema({ _id: false })
-class VideoImage {
-  @Prop({ type: Types.ObjectId, ref: 'Image', required: true })
+@Schema({ collection: 'video_images', _id: false })
+class VideoImageEntity {
+  @Prop({ type: Types.ObjectId, ref: 'ImageEntity', required: true })
   imageId: Types.ObjectId;
 
   @Prop({ type: [String], enum: imageTypes, required: true })
@@ -54,10 +58,11 @@ class VideoImage {
   addedAt: Date;
 }
 
-const VideoImageSchema = SchemaFactory.createForClass(VideoImage);
+export type VideoImage = Omit<VideoImageEntity, keyof Document>;
+const VideoImageSchema = SchemaFactory.createForClass(VideoImageEntity);
 
-@Schema({ timestamps: true })
-export class Video {
+@Schema({ collection: 'videos', timestamps: true })
+export class VideoEntity {
   @Prop({ type: Object, required: true })
   slug: LocalizedString;
 
@@ -80,10 +85,10 @@ export class Video {
   trailer?: LocalizedString;
 
   @Prop({ type: [VideoImageSchema], default: [] })
-  images: VideoImage[];
+  images: VideoImageEntity[];
 
   @Prop({ type: [SubtitleSchema], default: [] })
-  subtitles: Subtitle[];
+  subtitles: SubtitleEntity[];
 
   @Prop()
   duration: number;
@@ -110,8 +115,11 @@ export class Video {
   outroEnd: number;
 
   @Prop({ type: [VideoPersonSchema], default: [] })
-  persons: VideoPerson[];
+  persons: VideoPersonEntity[];
 }
 
-export type VideoDocument = Video & Document;
-export const VideoSchema = SchemaFactory.createForClass(Video);
+export type Video = Omit<VideoEntity, keyof Document> & {
+  id: string;
+};
+export type VideoDocument = VideoEntity & Document;
+export const VideoSchema = SchemaFactory.createForClass(VideoEntity);
