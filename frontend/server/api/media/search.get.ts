@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
 
     // Send the media search query to backend
     try {
-        const response = await $fetch(`${config.BACKEND_API_URL}/media/search?q=${mediaName}`, {
+        const response = await $fetch(`${config.BACKEND_API_URL}/collections/search?q=${mediaName}&limit=10`, {
             method: "GET",
             headers: { cookie: cookie },
             credentials: "include",

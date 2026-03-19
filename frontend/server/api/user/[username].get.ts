@@ -4,13 +4,11 @@ export default defineEventHandler(async (event) => {
     const cookie = getHeader(event, "cookie") || "";
     if (!cookie) throw createError({ statusCode: 401, statusMessage: "No session found" });
 
-    //Get imageId from route params of URL
-    const imageId = getRouterParam(event, 'imageId')
-    if (!imageId) throw createError({ statusCode: 401, statusMessage: "No imageId found" });
+    const username = getRouterParam(event, 'username')
 
-    // Send the imageId to Spring Boot and retreive image
+    // Send the cookie to NestJS API for verification
     try {
-        const response = await $fetch(`${config.BACKEND_API_URL}/api/v1/image/${imageId}/raw`, {
+        const response = await $fetch(`${config.BACKEND_API_URL}/users/${username}`, {
             method: "GET",
             headers: { cookie: cookie },
             credentials: "include",
@@ -18,6 +16,7 @@ export default defineEventHandler(async (event) => {
 
         return response;
     } catch (err: any) {
-        throw createError({ statusCode: 500 });
+        // Forward NestJS status code
+        throw createError({ statusCode: err.response?.status || 500, statusMessage: err.message });
     }
 })

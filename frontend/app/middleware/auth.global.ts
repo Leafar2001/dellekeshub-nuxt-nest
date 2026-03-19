@@ -13,7 +13,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
     if (!user) return navigateTo("/login")
 
     // Check if route requires admin privileges and user is admin.
-    if (adminPages.includes(to.path) && user.role !== "ADMIN") {
+    if (adminPages.includes(to.path) && user.role !== "admin") {
         return navigateTo("/")
     }
 })

@@ -8,7 +8,7 @@ export default defineNuxtConfig({
   modules: ['shadcn-nuxt', '@nuxtjs/color-mode', '@nuxt/icon'],
   css: ['~/assets/css/base.css', '~/assets/css/tailwind.css'],
   runtimeConfig: {
-    BACKEND_API_URL: process.env.BACKEND_API_URL || "http://localhost:3001",
+    BACKEND_API_URL: process.env.BACKEND_API_URL || "http://localhost:8080",
     public: {
       NUXT_API_URL: process.env.NUXT_API_URL || "http://localhost:3000"
     }

@@ -1,6 +1,6 @@
 import { useStorage } from "@vueuse/core"
 
-const specialColor = useStorage('special-color-preference', '#F44336')
+const specialColor = useStorage('special-color-preference', '#FFFFFF')
 
 export const useSpecialColor = () => {
 

@@ -10,7 +10,7 @@ const props = defineProps<{
 
 <template>
   <AvatarRoot data-slot="avatar"
-    :class="cn('relative flex transition duration-200 ease-out border-special hover:border dark:hover:border size-8 shrink-0 overflow-hidden rounded-full', props.class)">
+    :class="cn('relative flex transition duration-200 ease-out hover:border-special hover:border dark:hover:border size-8 shrink-0 overflow-hidden rounded-full', props.class)">
     <slot />
   </AvatarRoot>
 </template>
