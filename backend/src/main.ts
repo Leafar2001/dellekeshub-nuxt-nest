@@ -1,6 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ConsoleLogger, ValidationPipe } from '@nestjs/common';
+import { ConsoleLogger } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
 
@@ -12,6 +14,26 @@ async function bootstrap() {
       timestamp: true,
     }),
   });
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('DellekesHub API')
+    .setDescription('Netflix-style video streaming platform API')
+    .setVersion('1.0')
+    .addCookieAuth('sid', { type: 'apiKey', in: 'cookie' }, 'session')
+    .addTag('auth', 'Authentication endpoints')
+    .addTag('users', 'User management')
+    .addTag('collections', 'Movie and series collections')
+    .addTag('media', 'Unified media endpoints')
+    .addTag('likes', 'Like/unlike media')
+    .addTag('watchlist', 'User watchlist')
+    .addTag('profiles', 'User profiles')
+    .addTag('reviews', 'Media reviews')
+    .addTag('progress', 'Watch progress tracking')
+    .addTag('stream', 'Video streaming')
+    .build();
+
+  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api/docs', app, cleanupOpenApiDoc(document));
 
   app.use(
     session({
@@ -32,12 +54,6 @@ async function bootstrap() {
         secure: process.env.NODE_ENV === 'prod',
         maxAge: 1000 * 60 * 60 * 24 * 7,
       },
-    }),
-  );
-
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
     }),
   );
 

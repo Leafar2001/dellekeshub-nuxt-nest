@@ -1,16 +1,12 @@
-import {
-  Body,
-  Controller,
-  Param,
-  Post,
-  Req,
-  Get,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Param, Post, Req, Get, UseGuards, Body } from '@nestjs/common';
+import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 import { WatchProgressService } from './watch-progress.service';
 import { SessionAuthGuard } from '../auth/middleware/session.guard';
+import { UpdateProgressDto } from './dto/watch-progress.dto';
 import type { Request } from 'express';
 
+@ApiTags('progress')
+@ApiCookieAuth('sid')
 @UseGuards(SessionAuthGuard)
 @Controller('progress')
 export class WatchProgressController {
@@ -31,14 +27,8 @@ export class WatchProgressController {
     @Param('mediaId') mediaId: string,
     @Param('episodeId') episodeId: string,
     @Req() req: Request,
-    @Body() body: { currentTime: number; duration: number },
+    @Body() body: UpdateProgressDto,
   ) {
-    return this.service.upsert(
-      req.session.userId!,
-      mediaId,
-      episodeId,
-      body.currentTime,
-      body.duration,
-    );
+    return this.service.upsert(req.session.userId!, mediaId, episodeId, body.currentTime, body.duration);
   }
 }

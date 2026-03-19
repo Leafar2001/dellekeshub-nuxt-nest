@@ -4,7 +4,7 @@ import {
   Collection,
   CollectionDocument,
 } from '../persistence/collection.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Pagination } from '../../lib/validation/pagination';
 import { queryResultToPagination } from '../../lib/utils/pagination-utils';
 import { CreateCollectionRequest } from '../validation/create-collection-request-schema';
@@ -130,5 +130,12 @@ export class CollectionService {
 
   async deleteCollection(id: string): Promise<CollectionDocument | null> {
     return this.collectionModel.findByIdAndDelete(id);
+  }
+
+  async findByIds(ids: string[]): Promise<CollectionDocument[]> {
+    if (ids.length === 0) return [];
+    return this.collectionModel.find({
+      _id: { $in: ids.map((id) => new Types.ObjectId(id)) },
+    });
   }
 }
