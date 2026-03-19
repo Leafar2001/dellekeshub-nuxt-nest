@@ -67,8 +67,8 @@ function navigateToMedia(mediaId) {
             <template v-if="collections.length > 0" v-for="collection in collections">
                 <div class="flex gap-3 px-2 py-2 cursor-pointer rounded-sm hover:bg-zinc-100 hover:dark:bg-zinc-900 hover:text-black dark:hover:text-white"
                     @pointerdown.prevent="navigateToMedia(collection._id)">
-                    <img class="w-12 aspect-[2/3] object-cover rounded-sm"
-                        :src="`http://localhost:3001/media/${collection._id}/thumbnail`" alt="">
+                    <!-- <img class="w-12 aspect-[2/3] object-cover rounded-sm"
+                        :src="`http://localhost:3001/media/${collection._id}/thumbnail`" alt=""> -->
                     <div class="flex flex-col">
                         <span class="text-xl font-medium">{{ collection.title['en-US'] }}</span>
                         <!-- <span class="text-sm font-light">{{ collection.year }}</span> -->
