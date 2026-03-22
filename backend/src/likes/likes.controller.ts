@@ -1,8 +1,16 @@
-import { Controller, Get, Post, Delete, Param, Req, UseGuards, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Req,
+  UseGuards,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 import { LikesService } from './likes.service';
 import { SessionAuthGuard } from '../auth/middleware/session.guard';
-import { CollectionService } from '../collections/services/collection.service';
 import type { Request } from 'express';
 
 @ApiTags('likes')
@@ -12,16 +20,12 @@ import type { Request } from 'express';
 export class LikesController {
   private readonly logger = new Logger(LikesController.name);
 
-  constructor(
-    private likesService: LikesService,
-    private collectionsService: CollectionService,
-  ) {}
+  constructor(private likesService: LikesService) {}
 
   @Get('user')
   async getUserLikes(@Req() req: Request) {
     const userId = req.session.userId!;
-    const mediaIds = await this.likesService.getUserLikes(userId);
-    return this.collectionsService.findByIds(mediaIds.map((id) => id.toString()));
+    return this.likesService.getUserLikes(userId);
   }
 
   @Get(':mediaId')

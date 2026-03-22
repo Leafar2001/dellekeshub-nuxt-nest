@@ -21,39 +21,6 @@ export class StaticController {
     private imageService: ImageService,
   ) {}
 
-  @Get([
-    'videos/:videoId/subtitles/:subtitleId',
-    'videos/:videoId/subtitles/:subtitleId/:slug',
-  ])
-  async getSubtitle(
-    @Res() res: Response,
-    @Param('videoId') videoId: string,
-    @Param('subtitleId') subtitleId: string,
-    @Param('slug') slug?: string,
-  ) {
-    const video = await this.videoService.findVideoById(videoId);
-    if (!video) throw new NotFoundException('Video not found');
-
-    const subtitle = video.subtitles.find(
-      (subtitle) => subtitle._id?.toString() === subtitleId,
-    );
-
-    if (!subtitle) {
-      throw new NotFoundException('Subtitle not found');
-    }
-
-    const localizedSlug = video.slug['en-US'];
-
-    if (localizedSlug && localizedSlug !== slug) {
-      res.redirect(
-        301,
-        `/static/videos/${videoId}/subtitles/${subtitleId}/${localizedSlug}`,
-      );
-    }
-
-    this.pipeFile(subtitle.path, res);
-  }
-
   @Get(['images/:imageId', 'images/:imageId/:slug'])
   async getImage(
     @Res() res: Response,
@@ -63,8 +30,8 @@ export class StaticController {
     const image = await this.imageService.findImageById(imageId);
     if (!image) throw new NotFoundException('Image not found');
 
-    if (image.slug && image.slug !== slug) {
-      res.redirect(301, `/static/images/${imageId}/${image.slug}`);
+    if (image.filename && image.filename !== slug) {
+      res.redirect(301, `/static/images/${imageId}/${image.filename}`);
       return;
     }
 

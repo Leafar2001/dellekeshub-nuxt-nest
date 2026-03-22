@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types, Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export type ReviewDocument = Review & Document;
 
@@ -14,10 +14,11 @@ export class Review {
   @Prop({ min: 1, max: 5, required: true })
   rating: number;
 
-  @Prop()
+  @Prop({ type: String, default: '' })
   comment: string;
 }
 
 export const ReviewSchema = SchemaFactory.createForClass(Review);
 
-ReviewSchema.index({ userId: 1, mediaId: 1 }, { unique: true }); // Max 1 review per user per media
+ReviewSchema.index({ userId: 1, mediaId: 1 }, { unique: true });
+ReviewSchema.index({ mediaId: 1, rating: -1 });

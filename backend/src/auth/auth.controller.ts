@@ -1,4 +1,12 @@
-import { Body, Controller, Post, Get, Req, UseGuards, Logger } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  Req,
+  UseGuards,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { Roles } from 'src/auth/middleware/roles.decorator';
@@ -34,7 +42,10 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: LoginDto, @Req() req: Request) {
-    const user = await this.authService.validateUser(body.username, body.password);
+    const user = await this.authService.validateUser(
+      body.username,
+      body.password,
+    );
     req.session.userId = user._id.toString();
     req.session.role = user.role;
     return { success: true };

@@ -1,6 +1,18 @@
-import { Controller, Get, Patch, Param, Req, UseGuards, Logger, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Req,
+  UseGuards,
+  Logger,
+  Body,
+} from '@nestjs/common';
 import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
-import { UserProfilesService, UpdateProfileData } from './user-profiles.service';
+import {
+  UserProfilesService,
+  UpdateProfileData,
+} from './user-profiles.service';
 import { SessionAuthGuard } from '../auth/middleware/session.guard';
 import { UpdateProfileDto } from './dto/profile.dto';
 import type { Request } from 'express';
@@ -28,7 +40,10 @@ export class UserProfilesController {
   @UseGuards(SessionAuthGuard)
   async updateMyProfile(@Req() req: Request, @Body() body: UpdateProfileDto) {
     const userId = req.session.userId!;
-    const profile = await this.profilesService.update(userId, body as UpdateProfileData);
+    const profile = await this.profilesService.update(
+      userId,
+      body as UpdateProfileData,
+    );
     this.logger.log(`Updated profile for user: ${userId}`);
     return profile;
   }

@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Req, Param, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Req,
+  Param,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 import { ReviewsService } from './reviews.service';
 import { SessionAuthGuard } from '../auth/middleware/session.guard';
@@ -15,7 +23,11 @@ export class ReviewsController {
 
   @Roles('admin')
   @Post(':mediaId/create')
-  create(@Param('mediaId') mediaId: string, @Req() req: Request, @Body() body: CreateReviewDto) {
+  create(
+    @Param('mediaId') mediaId: string,
+    @Req() req: Request,
+    @Body() body: CreateReviewDto,
+  ) {
     return this.reviewsService.create(req.session.userId!, mediaId, body);
   }
 

@@ -1,8 +1,16 @@
-import { Controller, Get, Post, Delete, Param, Req, UseGuards, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Delete,
+  Param,
+  Req,
+  UseGuards,
+  Logger,
+} from '@nestjs/common';
 import { ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 import { WatchlistService } from './watchlist.service';
 import { SessionAuthGuard } from '../auth/middleware/session.guard';
-import { CollectionService } from '../collections/services/collection.service';
 import type { Request } from 'express';
 
 @ApiTags('watchlist')
@@ -12,20 +20,19 @@ import type { Request } from 'express';
 export class WatchlistController {
   private readonly logger = new Logger(WatchlistController.name);
 
-  constructor(
-    private watchlistService: WatchlistService,
-    private collectionsService: CollectionService,
-  ) {}
+  constructor(private watchlistService: WatchlistService) {}
 
   @Get()
   async getWatchlist(@Req() req: Request) {
     const userId = req.session.userId!;
-    const mediaIds = await this.watchlistService.getUserWatchlist(userId);
-    return this.collectionsService.findByIds(mediaIds.map((id) => id.toString()));
+    return this.watchlistService.getUserWatchlist(userId);
   }
 
   @Get(':mediaId')
-  async getWatchlistStatus(@Param('mediaId') mediaId: string, @Req() req: Request) {
+  async getWatchlistStatus(
+    @Param('mediaId') mediaId: string,
+    @Req() req: Request,
+  ) {
     const userId = req.session.userId!;
     return this.watchlistService.getWatchlistStatus(userId, mediaId);
   }
@@ -38,7 +45,10 @@ export class WatchlistController {
   }
 
   @Delete(':mediaId')
-  async removeFromWatchlist(@Param('mediaId') mediaId: string, @Req() req: Request) {
+  async removeFromWatchlist(
+    @Param('mediaId') mediaId: string,
+    @Req() req: Request,
+  ) {
     const userId = req.session.userId!;
     this.logger.log(`User ${userId} removing media ${mediaId} from watchlist`);
     return this.watchlistService.remove(userId, mediaId);

@@ -11,7 +11,6 @@ interface UserWithTimestamp {
   _id: { toString(): string };
   username: string;
   role: string;
-  avatarB64?: string;
   createdAt?: Date;
 }
 
@@ -59,7 +58,6 @@ export class AuthService {
         _id: user._id.toString(),
         username: user.username,
         role: user.role,
-        avatarB64: user.avatarB64,
         createdAt: user.createdAt,
         profile: null,
       };
@@ -69,18 +67,12 @@ export class AuthService {
       _id: user._id.toString(),
       username: user.username,
       role: user.role,
-      avatarB64: user.avatarB64,
       createdAt: user.createdAt,
       profile: {
         displayName: profile.displayName,
         bio: profile.bio,
-        avatarB64: profile.avatarB64,
-        bannerB64: profile.bannerB64,
-        favoriteGenres: profile.favoriteGenres,
+        avatarImageId: profile.avatarImageId,
         preferredLocale: profile.preferredLocale,
-        autoPlay: profile.autoPlay,
-        autoplayNextEpisode: profile.autoplayNextEpisode,
-        volume: profile.volume,
       },
     };
   }

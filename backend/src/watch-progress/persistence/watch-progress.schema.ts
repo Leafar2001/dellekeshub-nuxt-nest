@@ -12,18 +12,16 @@ export class WatchProgress {
   mediaId: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, required: true })
-  episodeId: Types.ObjectId;
+  videoId: Types.ObjectId;
 
-  @Prop({ default: 0 })
+  @Prop({ type: Number, default: 0 })
   currentTime: number;
 
-  @Prop()
-  duration?: number;
-
-  @Prop({ default: false })
+  @Prop({ type: Boolean, default: false })
   finished: boolean;
 }
 
 export const WatchProgressSchema = SchemaFactory.createForClass(WatchProgress);
 
 WatchProgressSchema.index({ userId: 1, mediaId: 1 }, { unique: true });
+WatchProgressSchema.index({ userId: 1 });

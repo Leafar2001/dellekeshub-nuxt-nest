@@ -15,26 +15,11 @@ export class UserProfile {
   @Prop({ type: String, default: '' })
   bio: string;
 
-  @Prop({ type: String, default: '' })
-  avatarB64: string;
-
-  @Prop({ type: String, default: '' })
-  bannerB64: string;
-
-  @Prop({ type: [String], default: [] })
-  favoriteGenres: string[];
+  @Prop({ type: Types.ObjectId, ref: 'Image' })
+  avatarImageId?: Types.ObjectId;
 
   @Prop({ type: String, enum: locales, default: 'en-US' })
   preferredLocale: Locale;
-
-  @Prop({ type: Boolean, default: false })
-  autoPlay: boolean;
-
-  @Prop({ type: Boolean, default: false })
-  autoplayNextEpisode: boolean;
-
-  @Prop({ type: Number, default: 0 })
-  volume: number;
 }
 
 export const UserProfileSchema = SchemaFactory.createForClass(UserProfile);

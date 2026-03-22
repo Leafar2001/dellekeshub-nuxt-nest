@@ -8,11 +8,8 @@ export class Watchlist {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   userId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'Collection', required: true })
+  @Prop({ type: Types.ObjectId, ref: 'Media', required: true })
   mediaId: Types.ObjectId;
-
-  @Prop({ default: () => new Date() })
-  addedAt: Date;
 }
 
 export const WatchlistSchema = SchemaFactory.createForClass(Watchlist);

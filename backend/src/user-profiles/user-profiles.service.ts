@@ -7,18 +7,7 @@ import {
 } from './persistence/user-profile.schema';
 
 export type UpdateProfileData = Partial<
-  Pick<
-    UserProfile,
-    | 'displayName'
-    | 'bio'
-    | 'avatarB64'
-    | 'bannerB64'
-    | 'favoriteGenres'
-    | 'preferredLocale'
-    | 'autoPlay'
-    | 'autoplayNextEpisode'
-    | 'volume'
-  >
+  Pick<UserProfile, 'displayName' | 'bio' | 'avatarImageId' | 'preferredLocale'>
 >;
 
 @Injectable()
@@ -62,16 +51,18 @@ export class UserProfilesService {
     return profile.save();
   }
 
-  async getPublicProfile(
-    userId: string,
-  ): Promise<{ displayName: string; avatarB64: string; bio: string } | null> {
+  async getPublicProfile(userId: string): Promise<{
+    displayName: string;
+    avatarImageId?: string;
+    bio: string;
+  } | null> {
     const profile = await this.profileModel.findOne({
       userId: new Types.ObjectId(userId),
     });
     if (!profile) return null;
     return {
       displayName: profile.displayName,
-      avatarB64: profile.avatarB64,
+      avatarImageId: profile.avatarImageId?.toString(),
       bio: profile.bio,
     };
   }

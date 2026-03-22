@@ -3,7 +3,6 @@ import { snapshotAtPercentage } from '../../lib/utils/ffmpeg-utils';
 import { Image, ImageDocument } from '../persistence/image.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { generateSlug } from '../../lib/utils/slug-utils';
 
 @Injectable()
 export class ImageService {
@@ -17,7 +16,7 @@ export class ImageService {
     return this.imageModel.findById(id);
   }
 
-  async createImage(image: Image): Promise<ImageDocument> {
+  async createImage(image: Partial<Image>): Promise<ImageDocument> {
     return this.imageModel.create(image);
   }
 
@@ -36,8 +35,8 @@ export class ImageService {
 
     return this.createImage({
       path,
-      name: snapshotName,
-      slug: generateSlug(snapshotName),
+      filename: snapshotName,
+      type: 'thumbnail',
     });
   }
 }

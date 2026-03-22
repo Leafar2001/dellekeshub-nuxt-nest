@@ -92,7 +92,7 @@ export class LikesService {
         },
       },
       { $group: { _id: '$mediaId', count: { $sum: 1 } } },
-    ]) as LikeCountResult[];
+    ]);
     const map = new Map<string, number>();
     counts.forEach((c) => map.set(c._id.toString(), c.count));
     return map;

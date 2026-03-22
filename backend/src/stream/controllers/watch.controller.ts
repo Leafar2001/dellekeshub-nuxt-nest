@@ -27,12 +27,6 @@ export class WatchController {
     const video = await this.videoService.findVideoById(videoId);
     if (!video) throw new NotFoundException('Video not found');
 
-    const localizedSlug = video.slug['en-US'];
-
-    if (localizedSlug && localizedSlug !== slug) {
-      return res.redirect(301, `/watch/videos/${videoId}/${localizedSlug}`);
-    }
-
     streamFile(video.path, req, res);
   }
 }

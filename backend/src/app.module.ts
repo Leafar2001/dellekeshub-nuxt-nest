@@ -7,7 +7,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { VideoModule } from './videos/video.module';
-import { CollectionModule } from './collections/collection.module';
+import { MediaCollectionModule } from './media-collection/media-collection.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { WatchProgressModule } from './watch-progress/watch-progress.module';
 import { StreamModule } from './stream/stream.module';
@@ -15,7 +15,6 @@ import { ImageModule } from './images/image.module';
 import { UserProfilesModule } from './user-profiles/user-profiles.module';
 import { LikesModule } from './likes/likes.module';
 import { WatchlistModule } from './watchlist/watchlist.module';
-import { MediaModule } from './media/media.module';
 import { ZodValidationPipe, ZodSerializerInterceptor } from 'nestjs-zod';
 
 @Module({
@@ -27,7 +26,7 @@ import { ZodValidationPipe, ZodSerializerInterceptor } from 'nestjs-zod';
     UsersModule,
     AuthModule,
     VideoModule,
-    CollectionModule,
+    MediaCollectionModule,
     ReviewsModule,
     WatchProgressModule,
     StreamModule,
@@ -35,7 +34,6 @@ import { ZodValidationPipe, ZodSerializerInterceptor } from 'nestjs-zod';
     UserProfilesModule,
     LikesModule,
     WatchlistModule,
-    MediaModule,
   ],
   controllers: [AppController],
   providers: [
