@@ -7,6 +7,7 @@ import {
   Res,
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { existsSync } from 'fs';
 import { VideoService } from '../../videos/services/video.service';
 import { streamFile } from '../../lib/utils/stream-utils';
 
@@ -27,7 +28,11 @@ export class WatchController {
     const localizedSlug = video.slug['en-US'];
 
     if (localizedSlug && localizedSlug !== slug) {
-      return res.redirect(301, `/watch/videos/${videoId}/${localizedSlug}`);
+      return res.redirect(301, `/api/watch/videos/${videoId}/${localizedSlug}`);
+    }
+
+    if (!existsSync(video.path)) {
+      throw new NotFoundException('Video file not found');
     }
 
     streamFile(video.path, req, res);

@@ -1,13 +1,12 @@
 export default defineNuxtRouteMiddleware(async (to, from) => {
     const publicPages = ["/login", "/register"]
     const adminPages = ["/upload", "/edit", "/admin"]
-    
-    // Login and register routes without checks
-    if(publicPages.includes(to.path)) return
 
-    // Get user role if session is present
-    const user:any = await useAuth().getUserRole()
-    console.log('User Role: ', user?.role)
+    // Login and register routes without checks
+    if (publicPages.includes(to.path)) return
+
+    // Get user (cached after first fetch)
+    const user: any = await useAuth().fetchUser()
 
     // If no user after fetch --> redirect to login
     if (!user) return navigateTo("/login")

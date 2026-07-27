@@ -1,48 +1,48 @@
 <script setup>
-const router = useRouter()
+const props = defineProps({
+    items: {
+        type: Array,
+        default: () => []
+    }
+})
 const activeMediaIndex = ref(0)
 const nextMediaInSeconds = ref(10)
-const growBarInterval = ref(10)
-const media = ref([
-    { id: "54752a4f-edbe-4e7d-97d4-3eb1bdde683b", title: "Over the garden wall", trailer: "https://www.youtube.com/embed/36mAsVSH_-s?autoplay=1&mute=1" },
-    { id: "54752a4f-edbe-4e7d-97d4-3eb1bdde683b", title: "Over the garden wall2", trailer: "https://www.youtube.com/embed/36mAsVSH_-s?autoplay=1&mute=1" },
-    { id: "54752a4f-edbe-4e7d-97d4-3eb1bdde683b", title: "Over the garden wall3", trailer: "https://www.youtube.com/embed/36mAsVSH_-s?autoplay=1&mute=1" },
-    { id: "54752a4f-edbe-4e7d-97d4-3eb1bdde683b", title: "Over the garden wall4", trailer: "https://www.youtube.com/embed/36mAsVSH_-s?autoplay=1&mute=1" },
-    { id: "54752a4f-edbe-4e7d-97d4-3eb1bdde683b", title: "Over the garden wall5", trailer: "https://www.youtube.com/embed/36mAsVSH_-s?autoplay=1&mute=1" }
-])
+const growBarInterval = ref(undefined)
+
+const activeItem = computed(() => props.items[activeMediaIndex.value])
+
+function rotateToNext() {
+    if (props.items.length === 0) return
+    if (activeMediaIndex.value + 1 >= props.items.length) {
+        activeMediaIndex.value = 0
+    } else {
+        activeMediaIndex.value++
+    }
+}
+
+function startInterval() {
+    clearInterval(growBarInterval.value)
+    growBarInterval.value = setInterval(rotateToNext, 1000 * nextMediaInSeconds.value)
+}
 
 onMounted(() => {
-    growBarInterval.value = setInterval(() => {
-        if (activeMediaIndex.value + 1 >= media.value.length) {
-            activeMediaIndex.value = 0
-        } else {
-            activeMediaIndex.value++
-            console.log(activeMediaIndex.value)
-        }
-    }, 1000 * nextMediaInSeconds.value)
+    startInterval()
 })
 onUnmounted(() => {
     clearInterval(growBarInterval.value)
 })
 
 function navigateToActiveMediaItem() {
-    navigateTo(`/media/${media.value[activeMediaIndex.value].id}`)
+    if (!activeItem.value) return
+    navigateTo(`/media/${activeItem.value.id}`)
 }
 function setActiveMediaIndex(index) {
     activeMediaIndex.value = index
-    clearInterval(growBarInterval.value)
-    growBarInterval.value = setInterval(() => {
-        if (activeMediaIndex.value + 1 >= media.value.length) {
-            activeMediaIndex.value = 0
-        } else {
-            activeMediaIndex.value++
-            console.log(activeMediaIndex.value)
-        }
-    }, 1000 * nextMediaInSeconds.value)
+    startInterval()
 }
 </script>
 <template>
-    <div @click="navigateToActiveMediaItem"
+    <div v-if="items.length > 0 && activeItem" @click="navigateToActiveMediaItem"
         class="aspect-video w-full transition duration-500 ease-in-out border rounded-md lg:h-[50vh] relative overflow-hidden cursor-pointer hover:border-special/50">
         <!-- Dark overlay over trailer -->
         <div class="absolute w-full h-full top-0 left-0 dark:bg-black/60"></div>
@@ -53,14 +53,14 @@ function setActiveMediaIndex(index) {
                 </div>
                 <div>
                     <span class="sm:text-lg md:text-3xl font-bold">
-                        {{ media[activeMediaIndex].title.toUpperCase() }}
+                        {{ activeItem.title.toUpperCase() }}
                     </span>
                     <span class="sm:text-lg md:text-3xl px-2">|</span>
                     <span class="sm:text-lg md:text-3xl font-light">WATCH NOW</span>
                 </div>
             </div>
             <div class="flex justify-center items-center z-10">
-                <template v-for="(item, i) in media">
+                <template v-for="(item, i) in items" :key="item.id">
                     <div @click.stop="setActiveMediaIndex(i)" class="w-10 mx-1 my-1.5 py-1.5 relative">
                         <div class="h-1 absolute rounded-2xl bg-special cursor-pointer hover:bg-special z-10 pointer-events-none"
                             :class="[activeMediaIndex == i ? 'grow-trailer-bar' : activeMediaIndex > i ? 'w-full' : 'w-0']">
@@ -71,8 +71,8 @@ function setActiveMediaIndex(index) {
                 </template>
             </div>
         </div>
-        <iframe ref="iframe" src="https://www.youtube.com/embed/36mAsVSH_-s?autoplay=1&mute=1" name="Trailer"
-            autoplay="true" allow="autoplay; encrypted-media;"></iframe>
+        <iframe :key="activeItem.trailer" :src="`https://www.youtube.com/embed/${activeItem.trailer}?autoplay=1&mute=1`"
+            name="Trailer" allow="autoplay; encrypted-media;"></iframe>
     </div>
 </template>
 <style scoped>

@@ -1,7 +1,5 @@
-import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
-import { Roles } from '../auth/middleware/roles.decorator';
-import { RolesGuard } from '../auth/middleware/roles.guard';
 import { createZodValidationPipe } from '../lib/utils/zod-validation';
 import {
   type CreateReview,
@@ -15,8 +13,6 @@ export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Post(':mediaId/create')
-  @UseGuards(RolesGuard)
-  @Roles('admin')
   create(
     @Param('mediaId') mediaId: string,
     @Session() session: UserSession,
@@ -32,5 +28,13 @@ export class ReviewsController {
   @Get(':mediaId')
   findForMedia(@Param('mediaId') mediaId: string) {
     return this.reviewsService.findForMedia(mediaId);
+  }
+
+  @Get(':mediaId/summary')
+  getSummary(
+    @Param('mediaId') mediaId: string,
+    @Session() session: UserSession,
+  ) {
+    return this.reviewsService.getSummary(mediaId, session.user.id);
   }
 }

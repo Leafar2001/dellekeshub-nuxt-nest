@@ -70,21 +70,23 @@ export class IndexingService {
   }
 
   async indexVideos(collection: Collection, directoryPath: string) {
-    const videosStream = fg.stream(`${directoryPath}/**/*.mp4`, {
+    const videoPaths = await fg(`${directoryPath}/**/*.mp4`, {
       deep: 2,
       onlyFiles: true,
       caseSensitiveMatch: false,
     });
+
+    videoPaths.sort((a, b) =>
+      a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
+    );
 
     const seasons: SeasonEntry[] = [];
     const videos: EpisodeEntry[] = [];
     const episodeCount = new Map<number | undefined, number>();
     let hasMovieEpisode = false;
 
-    for await (const videoPath of videosStream) {
-      const { title, seasonNumber } = this.destructVideoPath(
-        videoPath.toString(),
-      );
+    for (const videoPathEntry of videoPaths) {
+      const { title, seasonNumber } = this.destructVideoPath(videoPathEntry);
 
       this.logger.log(
         `Indexing video: (${title})${seasonNumber ? `, season: (${seasonNumber})` : ''}...`,
@@ -93,13 +95,13 @@ export class IndexingService {
       let video = await this.videoService.findVideoByTitle(title);
 
       if (!video) {
-        const subtitles = await this.findSubtitles(videoPath.toString());
+        const subtitles = await this.findSubtitles(videoPathEntry);
 
         video = await this.videoService.createVideo({
           title: {
             'en-US': title,
           },
-          path: videoPath.toString(),
+          path: videoPathEntry,
           subtitles,
         });
       } else {

@@ -114,7 +114,7 @@ function adjustVolume(forceMute) {
                             <Slider @click.stop="() => { }" @update:model-value="adjustVolume(false)"
                                 v-model="trailerVolume" :step="1" :min="0" :max="100" />
                         </div>
-                        <Button v-if="auth.role === 'admin'" variant="outline" @click.stop="console.log('edit btn')">
+                        <Button v-if="auth?.role === 'admin'" variant="outline" @click.stop="console.log('edit btn')">
                             <Icon name="material-symbols-light:ink-pen" size="18px" />
                             <span>Edit</span>
                         </Button>

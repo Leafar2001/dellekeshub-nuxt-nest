@@ -1,5 +1,6 @@
 <script setup>
 import { useDebounceFn } from '@vueuse/core'
+const config = useRuntimeConfig()
 const icon = useTemplateRef('icon')
 const searchQuery = ref('')
 const collections = ref([])
@@ -9,19 +10,22 @@ const searchbar = ref()
 
 // API-call to search media
 async function fetchSearchResults(query) {
-    if (!query) return
+    if (!query) {
+        collections.value = []
+        return
+    }
     try {
         isSearching.value = true
-        const response = await $fetch('/api/collections/search', {
+        const response = await $fetch(`${config.public.BACKEND_API_URL}/api/collections/search`, {
             method: 'GET',
-            params: { title: query }
+            credentials: 'include',
+            params: { q: query }
         })
-        console.log("search response", response)
-        collections.value = response
-        isSearching.value = false
-        console.log("search items", collections.value)
+        collections.value = response.collections
     } catch (err) {
         console.error('Search failed:', err)
+    } finally {
+        isSearching.value = false
     }
 }
 
@@ -66,13 +70,12 @@ function navigateToMedia(mediaId) {
             class="absolute top-11 p-1 w-full h-fit border rounded-md bg-white dark:bg-zinc-950 z-40">
             <template v-if="collections.length > 0" v-for="collection in collections">
                 <div class="flex gap-3 px-2 py-2 cursor-pointer rounded-sm hover:bg-zinc-100 hover:dark:bg-zinc-900 hover:text-black dark:hover:text-white"
-                    @pointerdown.prevent="navigateToMedia(collection._id)">
-                    <!-- <img class="w-12 aspect-[2/3] object-cover rounded-sm"
-                        :src="`http://localhost:3001/media/${collection._id}/thumbnail`" alt=""> -->
-                    <div class="flex flex-col">
-                        <span class="text-xl font-medium">{{ collection.title['en-US'] }}</span>
-                        <!-- <span class="text-sm font-light">{{ collection.year }}</span> -->
-                        <!-- <span>{{ collection.thumbnailPath }}</span> -->
+                    @pointerdown.prevent="navigateToMedia(collection.id)">
+                    <img v-if="collectionThumbnail(collection)"
+                        class="w-8 aspect-[2/3] object-cover rounded-sm"
+                        :src="getImageUrl(collectionThumbnail(collection))" alt="">
+                    <div class="flex flex-col justify-center">
+                        <span class="text-sm font-medium">{{ pickLocale(collection.title) }}</span>
                     </div>
                 </div>
             </template>

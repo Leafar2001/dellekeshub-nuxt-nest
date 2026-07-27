@@ -14,6 +14,9 @@ import { CollectionVideo } from './collections/persistence/entities/collection-v
 import { CollectionSeason } from './collections/persistence/entities/collection-season.entity';
 import { Review } from './reviews/persistence/review.entity';
 import { WatchProgress } from './watch-progress/persistence/watch-progress.entity';
+import { WatchlistItem } from './watchlist/persistence/watchlist-item.entity';
+import { FavoriteItem } from './favorites/persistence/favorite-item.entity';
+import { InviteCode } from './invites/persistence/invite-code.entity';
 
 dotenv.config();
 
@@ -31,6 +34,9 @@ export const entities = [
   CollectionSeason,
   Review,
   WatchProgress,
+  WatchlistItem,
+  FavoriteItem,
+  InviteCode,
 ];
 
 export const AppDataSource = new DataSource({

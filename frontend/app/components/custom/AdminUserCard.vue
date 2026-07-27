@@ -40,7 +40,7 @@ const props = defineProps({
         <div class="py-4 pr-4">
             <p class="text-black dark:text-white"><strong>{{ props.user.username }}</strong></p>
             <p class="text-xs"><strong>Created at:</strong> {{ props.user.createdAt.split('T')[0] }}</p>
-            <p class="text-xs"><strong>ID:</strong> {{ props.user._id }}</p>
+            <p class="text-xs"><strong>ID:</strong> {{ props.user.id }}</p>
         </div>
         <!-- <div class="blob absolute bottom-0 w-full h-1 transition-all bg-white/50 hover:bg-special blur-3xl">
                     </div> -->

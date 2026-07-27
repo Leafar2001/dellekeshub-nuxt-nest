@@ -7,6 +7,7 @@ export const CreateCollectionRequestSchema = z.object({
   description: LocalizedStringSchema.optional(),
   trailer: LocalizedStringSchema.optional(),
   type: z.enum(collectionTypes),
+  genres: z.array(z.string()).optional(),
 });
 
 export type CreateCollectionRequest = z.infer<

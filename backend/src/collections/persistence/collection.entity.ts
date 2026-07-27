@@ -33,6 +33,9 @@ export class Collection {
   })
   type: CollectionType;
 
+  @Column({ type: 'text', array: true, default: () => `'{}'` })
+  genres: string[];
+
   @Column({ type: 'jsonb', nullable: true })
   trailer: LocalizedString | null;
 

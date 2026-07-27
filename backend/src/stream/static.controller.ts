@@ -1,6 +1,6 @@
 import { Controller, Get, NotFoundException, Param, Res } from '@nestjs/common';
 import { VideoService } from '../videos/services/video.service';
-import { createReadStream } from 'fs';
+import { createReadStream, existsSync, statSync } from 'fs';
 import { lookup } from 'mime-types';
 import { ImageService } from '../images/services/image.service';
 import type { Response } from 'express';
@@ -35,7 +35,7 @@ export class StaticController {
     if (localizedSlug && localizedSlug !== slug) {
       res.redirect(
         301,
-        `/static/videos/${videoId}/subtitles/${subtitleId}/${localizedSlug}`,
+        `/api/static/videos/${videoId}/subtitles/${subtitleId}/${localizedSlug}`,
       );
       return;
     }
@@ -53,7 +53,7 @@ export class StaticController {
     if (!image) throw new NotFoundException('Image not found');
 
     if (image.slug && image.slug !== slug) {
-      res.redirect(301, `/static/images/${imageId}/${image.slug}`);
+      res.redirect(301, `/api/static/images/${imageId}/${image.slug}`);
       return;
     }
 
@@ -61,10 +61,23 @@ export class StaticController {
   }
 
   pipeFile(filePath: string, res: Response) {
+    if (!existsSync(filePath)) {
+      throw new NotFoundException('File not found');
+    }
+
     const file = createReadStream(filePath);
     const mimeType = lookup(filePath);
+    const size = statSync(filePath).size;
 
     res.set('Content-Type', mimeType || 'application/octet-stream');
+    res.set('Content-Length', size.toString());
     file.pipe(res);
+    file.on('error', () => {
+      if (!res.headersSent) {
+        res.status(500).end();
+      } else {
+        res.end();
+      }
+    });
   }
 }

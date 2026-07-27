@@ -12,12 +12,14 @@ async function createNewUser() {
         return errorText.value = "Please fill in all fields."
     }
     try {
-        const response = await $fetch('/api/auth/register', {
+        const config = useRuntimeConfig()
+        const response = await $fetch(`${config.public.BACKEND_API_URL}/api/users/create`, {
             method: "POST",
+            credentials: 'include',
             body: {
                 username: username.value,
                 password: password.value,
-                role: selectedRole.value
+                role: selectedRole.value,
             },
         })
 
@@ -43,7 +45,7 @@ const emit = defineEmits([
                 <p>{{ errorText }}</p>
             </div>
             <Input v-model="username" placeholder="Username" />
-            <Input v-model="password" type="text" placeholder="Password" />
+            <Input v-model="password" type="password" placeholder="Password" />
             <Select v-model="selectedRole" class="w-full">
                 <SelectTrigger class="w-full cursor-pointer">
                     <SelectValue placeholder="Role" />

@@ -5,6 +5,7 @@ import { VideoImage } from './persistence/entities/video-image.entity';
 import { VideoSubtitle } from './persistence/entities/video-subtitle.entity';
 import { VideoPerson } from './persistence/entities/video-person.entity';
 import { VideoService } from './services/video.service';
+import { VideoController } from './controllers/video.controller';
 import { ImageModule } from '../images/image.module';
 import { PersonModule } from '../person/person.module';
 
@@ -15,6 +16,7 @@ import { PersonModule } from '../person/person.module';
     PersonModule,
   ],
   providers: [VideoService],
+  controllers: [VideoController],
   exports: [VideoService],
 })
 export class VideoModule {}

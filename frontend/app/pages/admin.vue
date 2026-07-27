@@ -1,11 +1,14 @@
 <script setup>
 import { toast } from 'vue-sonner'
-const { data: users, error, pending } = await useFetch("/api/user/all")
+const config = useRuntimeConfig()
+const { data: users } = await useFetch(`${config.public.BACKEND_API_URL}/api/users/all`, {
+    credentials: 'include'
+})
 
 const editUserModal = ref({ show: false, user: undefined })
 const addUserModal = ref({ show: false })
 const addCollectionModal = ref({ show: false })
-const isSearching = ref(false)
+const searchQuery = ref("")
 const refreshingUserList = ref({ loading: false, done: false })
 const actionButtons = [
     { name: "Create collection", path: "/", icon: "material-symbols-light:create-new-folder-outline-rounded", action: () => addCollectionModal.value.show = true },
@@ -13,15 +16,24 @@ const actionButtons = [
     { name: "Search torrents", path: "/", icon: "material-symbols-light:video-search-rounded" },
 ]
 
+const filteredUsers = computed(() => {
+    if (!searchQuery.value) return users.value ?? []
+    const query = searchQuery.value.toLowerCase()
+    return (users.value ?? []).filter(user =>
+        user.username?.toLowerCase().includes(query)
+    )
+})
+
 function showEditUserModal(user) {
     editUserModal.value = { show: true, user }
-    console.log("Show edit user modal for user:", user)
 }
 
 async function refreshUserList() {
     refreshingUserList.value = { loading: true, done: false }
     try {
-        users.value = await $fetch("/api/user/all")
+        users.value = await $fetch(`${config.public.BACKEND_API_URL}/api/users/all`, {
+            credentials: 'include'
+        })
 
         refreshingUserList.value = { loading: false, done: true }
         setTimeout(() => {
@@ -37,7 +49,8 @@ async function refreshUserList() {
 <template>
     <div class="animate-in fade-in slide-in-from-bottom-[5%] duration-500">
         <AddCollectionModal v-if="addCollectionModal.show" @close="addCollectionModal.show = false" />
-        <EditUserModal v-if="editUserModal.show" @close="editUserModal.show = false" :user="editUserModal.user" />
+        <EditUserModal v-if="editUserModal.show" @close="editUserModal.show = false" :user="editUserModal.user"
+            @saved="refreshUserList" />
         <AddUserModal v-if="addUserModal.show" @close="addUserModal.show = false" />
         <h1 class="text-3xl font-bold mb-1">Actions</h1>
         <div class="flex flex-col md:flex-row gap-3">
@@ -45,7 +58,6 @@ async function refreshUserList() {
                 class="flex flex-col grow items-center justify-center relative border hover:border-special overflow-hidden blob-parent p-4 md:h-40 rounded-md text-muted-foreground dark:text-zinc-300 hover:text-black dark:hover:text-white cursor-pointer dark:bg-zinc-950/20 bg-white/20 transition-all ease">
                 <Icon :name="button.icon" size="64px" />
                 <span class="font-light">{{ button.name }}</span>
-                <!-- <div class="blob absolute bottom-0 w-full h-1 transition-all bg-special blur-3xl"></div> -->
             </div>
         </div>
 
@@ -54,10 +66,9 @@ async function refreshUserList() {
             <div
                 class="flex gap-2 relative w-full items-center text-muted-foreground hover:text-black dark:hover:text-white">
                 <span class="absolute start-0 inset-y-0 flex items-center justify-center px-2">
-                    <Icon v-if="isSearching" name="svg-spinners:180-ring-with-bg" size="16px" />
-                    <Icon v-else ref="icon" name="material-symbols:search-rounded" size="16px" />
+                    <Icon ref="icon" name="material-symbols:search-rounded" size="16px" />
                 </span>
-                <Input ref="searchbar" id="search" type="text" placeholder="Search users..."
+                <Input v-model="searchQuery" id="search" type="text" placeholder="Search users..."
                     autocomplete="one-time-code"
                     class="pl-7 w-full focus-visible:text-black dark:focus-visible:text-white focus-visible:placeholder:text-black dark:focus-visible:placeholder:text-white bg-transparent dark:bg-transparent" />
                 <TooltipProvider>
@@ -85,14 +96,14 @@ async function refreshUserList() {
                 </Button>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
-                <template v-for="item in 20">
-                    <template v-for="user in users" :key="user._id">
-                        <AdminUserCard :user="user" @click="showEditUserModal(user)" />
-                    </template>
+                <template v-for="user in filteredUsers" :key="user.id">
+                    <AdminUserCard :user="user" @click="showEditUserModal(user)" />
                 </template>
-
             </div>
+            <p v-if="filteredUsers.length === 0" class="text-muted-foreground mt-3">No users found.</p>
         </div>
+
+        <InviteSection />
     </div>
 </template>
 

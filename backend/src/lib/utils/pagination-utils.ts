@@ -1,3 +1,4 @@
+import { BadRequestException } from '@nestjs/common';
 import { Pagination, PaginationSchema } from '../validation/pagination';
 import * as z from 'zod/v4';
 
@@ -11,13 +12,20 @@ export function paginationToKey(pagination: Pagination): string {
 }
 
 export function keyToPagination(pagination: string): Pagination {
-  const parseResult = PaginationSchema.safeParse(JSON.parse(atob(pagination)));
+  try {
+    const parseResult = PaginationSchema.safeParse(
+      JSON.parse(atob(pagination)),
+    );
 
-  if (!parseResult.success) {
-    throw new Error('Invalid pagination');
+    if (!parseResult.success) {
+      throw new BadRequestException('Invalid pagination key');
+    }
+
+    return parseResult.data;
+  } catch (error) {
+    if (error instanceof BadRequestException) throw error;
+    throw new BadRequestException('Invalid pagination key');
   }
-
-  return parseResult.data;
 }
 
 export function queryResultToPagination(

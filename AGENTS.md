@@ -222,12 +222,15 @@ npm run preview
 backend/
 ├── src/
 │   ├── auth/           # better-auth instance + RolesGuard / @Roles decorator
-│   ├── users/          # User management
-│   ├── videos/         # Video management
-│   ├── collections/    # Collection management
-│   ├── reviews/        # Reviews
+│   ├── users/          # User management (incl. anonymous register via invite code)
+│   ├── videos/         # Video management (GET /api/videos/:id)
+│   ├── collections/    # Collection management (+ genres, feeds: continue-watching/trending/top-rated)
+│   ├── reviews/        # Reviews (create for all users, summary endpoint)
+│   ├── watchlist/      # Per-user watchlist
+│   ├── favorites/      # Per-user favorites
+│   ├── invites/        # Admin-managed invite codes for registration
 │   ├── images/         # Image handling
-│   ├── stream/         # Video streaming
+│   ├── stream/         # Video streaming (watch) + static files (images, subtitles)
 │   ├── watch-progress/ # Progress tracking
 │   ├── lib/            # Utilities (utils, validation)
 │   └── main.ts
@@ -295,3 +298,4 @@ async function fetchData() {
 - Frontend: Nuxt config or `.env` files
 - PostgreSQL connection string (`DATABASE_URL`) required for backend
 - `BETTER_AUTH_SECRET` (≥ 32 chars) and `BETTER_AUTH_URL` required for authentication
+- `FRONTEND_URL` configures CORS origin and better-auth trusted origins (defaults to `http://localhost:3000`)

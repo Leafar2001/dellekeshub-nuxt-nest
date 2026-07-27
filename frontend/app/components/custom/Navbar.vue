@@ -1,6 +1,7 @@
 <script setup>
-const router = useRouter()
-const userRole = await useAuth().getUserRole()
+const config = useRuntimeConfig()
+const { user, fetchUser, clearUser } = useAuth()
+await fetchUser()
 const navbar = ref()
 const navbarItems = ref([
     { name: "Home", route: "/", icon: "material-symbols:home-outline-rounded", auth: ["user", "admin"] },
@@ -20,12 +21,15 @@ onUnmounted(() => {
 
 async function logoutUser() {
     try {
-        const response = await useFetch('/api/auth/logout', {
-            method: "POST"
+        await $fetch(`${config.public.BACKEND_API_URL}/api/auth/sign-out`, {
+            method: "POST",
+            credentials: 'include'
         })
-        return navigateTo("/login")
     } catch (err) {
         console.error(err)
+    } finally {
+        clearUser()
+        return navigateTo("/login")
     }
 }
 
@@ -62,14 +66,14 @@ function darkenNavbar() {
             <DropdownMenuTrigger class="cursor-pointer animate-in fade-in slide-in-from-bottom duration-500">
                 <Avatar
                     class="h-9 w-9 hover:border-special/30 dark:hover:border-special/30 hover:ring-special/30 dark:hover:ring-special/30 hover:ring-[4px] dark:hover:ring-[4px]">
-                    <AvatarImage src="https://avatars.githubusercontent.com/u/59648771?v=4&size=1048"
+                    <AvatarImage v-if="user?.avatarB64" :src="'data:image/jpg;base64,' + user.avatarB64"
                         alt="profile-picture" />
-                    <AvatarFallback>ME</AvatarFallback>
+                    <AvatarFallback>{{ user?.username?.charAt(0).toUpperCase() ?? 'ME' }}</AvatarFallback>
                 </Avatar>
             </DropdownMenuTrigger>
             <DropdownMenuContent class="w-screen mt-4 lg:w-100 lg:mr-5">
                 <template v-for="item in navbarItems">
-                    <DropdownMenuItem v-if="item.auth.includes(userRole.role)" asChild>
+                    <DropdownMenuItem v-if="item.auth.includes(user?.role)" asChild>
                         <NuxtLink :to="item.route" class="py-4">
                             <Icon :name="item.icon" size="20px" />
                             {{ item.name }}

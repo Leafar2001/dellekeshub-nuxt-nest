@@ -1,5 +1,4 @@
 <script setup>
-const config = useRuntimeConfig()
 const props = defineProps({
     title: String,
     thumbnailPath: String,
@@ -15,7 +14,7 @@ const props = defineProps({
             :class="[props.disableAspectRatio ? 'flex grow min-h-64' : 'aspect-[9/12] min-w-50 max-w-50']">
             <div class="absolute w-full h-full dark:bg-black/60 top-0 left-0 z-10"></div>
             <img v-if="props.thumbnailPath" class="absolute w-full h-full object-cover top-0 left-0"
-                :src="`${config.public.NUXT_API_URL}/api/image/${props.thumbnailPath}/raw`">
+                :src="getImageUrl(props.thumbnailPath)">
             <span class="relative z-20 break-after-all text-sm lg:text-base">{{ props.title }}</span>
             <div v-if="props.watchPercentage && props.watchPercentage != 0"
                 class="absolute w-full h-1 bg-zinc-500 bottom-0 z-20"></div>

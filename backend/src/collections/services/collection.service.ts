@@ -1,10 +1,12 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Collection } from '../persistence/collection.entity';
 import { CollectionImage } from '../persistence/entities/collection-image.entity';
 import { CollectionVideo } from '../persistence/entities/collection-video.entity';
 import { CollectionSeason } from '../persistence/entities/collection-season.entity';
+import { WatchProgress } from '../../watch-progress/persistence/watch-progress.entity';
+import { Review } from '../../reviews/persistence/review.entity';
 import { Pagination } from '../../lib/validation/pagination';
 import { queryResultToPagination } from '../../lib/utils/pagination-utils';
 import { type CreateCollectionRequest } from '../validation/create-collection-request-schema';
@@ -22,6 +24,10 @@ export class CollectionService {
     private readonly collectionVideoRepository: Repository<CollectionVideo>,
     @InjectRepository(CollectionSeason)
     private readonly collectionSeasonRepository: Repository<CollectionSeason>,
+    @InjectRepository(WatchProgress)
+    private readonly watchProgressRepository: Repository<WatchProgress>,
+    @InjectRepository(Review)
+    private readonly reviewRepository: Repository<Review>,
   ) {}
 
   private static applyCursor(
@@ -38,7 +44,7 @@ export class CollectionService {
     );
   }
 
-  async findAll(limit: number = 20, pagination?: Pagination) {
+  async findAll(limit: number = 20, pagination?: Pagination, genre?: string) {
     const qb = this.collectionRepository
       .createQueryBuilder('collection')
       .leftJoinAndSelect('collection.images', 'images')
@@ -52,6 +58,10 @@ export class CollectionService {
       .addOrderBy('collection.id', 'DESC')
       .take(limit);
 
+    if (genre) {
+      qb.andWhere(':genre = ANY(collection.genres)', { genre });
+    }
+
     CollectionService.applyCursor(qb, pagination);
 
     const collections = await qb.getMany();
@@ -60,6 +70,16 @@ export class CollectionService {
       collections,
       pagination: queryResultToPagination(collections),
     };
+  }
+
+  async findAllGenres(): Promise<string[]> {
+    const rows = await this.collectionRepository
+      .createQueryBuilder('collection')
+      .select('DISTINCT unnest(collection.genres)', 'genre')
+      .orderBy('genre', 'ASC')
+      .getRawMany<{ genre: string }>();
+
+    return rows.map((row) => row.genre);
   }
 
   findCollectionById(id: string) {
@@ -110,6 +130,95 @@ export class CollectionService {
     };
   }
 
+  private async findCollectionsByIds(ids: string[]) {
+    if (ids.length === 0) return new Map<string, Collection>();
+
+    const collections = await this.collectionRepository.find({
+      where: { id: In(ids) },
+      relations: { images: { image: true } },
+    });
+
+    return new Map(collections.map((c) => [c.id, c]));
+  }
+
+  async findContinueWatching(userId: string, limit: number = 20) {
+    const progressRows = await this.watchProgressRepository.find({
+      where: { userId, finished: false },
+      order: { updatedAt: 'DESC' },
+      take: limit,
+    });
+
+    if (progressRows.length === 0) return [];
+
+    const byId = await this.findCollectionsByIds(
+      progressRows.map((p) => p.mediaId),
+    );
+
+    return progressRows
+      .filter((p) => byId.has(p.mediaId))
+      .map((p) => ({
+        collection: byId.get(p.mediaId)!,
+        episodeId: p.episodeId,
+        currentTime: p.currentTime,
+        duration: p.duration,
+        percentage:
+          p.duration && p.duration > 0
+            ? Math.min(100, Math.round((p.currentTime / p.duration) * 100))
+            : 0,
+        updatedAt: p.updatedAt,
+      }));
+  }
+
+  async findTrending(limit: number = 20) {
+    const rows = await this.watchProgressRepository
+      .createQueryBuilder('progress')
+      .select('progress."mediaId"', 'mediaId')
+      .addSelect('COUNT(DISTINCT progress."userId")', 'viewers')
+      .addSelect('MAX(progress."updatedAt")', 'lastWatched')
+      .groupBy('progress."mediaId"')
+      .orderBy('viewers', 'DESC')
+      .addOrderBy('"lastWatched"', 'DESC')
+      .limit(limit)
+      .getRawMany<{ mediaId: string; viewers: string }>();
+
+    if (rows.length === 0) return [];
+
+    const byId = await this.findCollectionsByIds(rows.map((r) => r.mediaId));
+
+    return rows
+      .filter((r) => byId.has(r.mediaId))
+      .map((r) => ({
+        collection: byId.get(r.mediaId)!,
+        viewers: parseInt(r.viewers, 10),
+      }));
+  }
+
+  async findTopRated(limit: number = 20) {
+    const rows = await this.reviewRepository
+      .createQueryBuilder('review')
+      .select('review."mediaId"', 'mediaId')
+      .addSelect('AVG(review.rating)', 'average')
+      .addSelect('COUNT(review.id)', 'reviewCount')
+      .where('review."mediaType" = :mediaType', { mediaType: 'collection' })
+      .groupBy('review."mediaId"')
+      .orderBy('average', 'DESC')
+      .addOrderBy('"reviewCount"', 'DESC')
+      .limit(limit)
+      .getRawMany<{ mediaId: string; average: string; reviewCount: string }>();
+
+    if (rows.length === 0) return [];
+
+    const byId = await this.findCollectionsByIds(rows.map((r) => r.mediaId));
+
+    return rows
+      .filter((r) => byId.has(r.mediaId))
+      .map((r) => ({
+        collection: byId.get(r.mediaId)!,
+        averageRating: r.average ? parseFloat(r.average) : 0,
+        reviewCount: r.reviewCount ? parseInt(r.reviewCount, 10) : 0,
+      }));
+  }
+
   private async assertTitleAvailable(title: LocalizedString) {
     const existing = await this.collectionRepository
       .createQueryBuilder('collection')
@@ -131,6 +240,7 @@ export class CollectionService {
       description: body.description ?? null,
       trailer: body.trailer ?? null,
       type: body.type,
+      genres: body.genres ?? [],
       slug: generateSlugLocalizedString(body.title) ?? {},
     });
 
@@ -202,6 +312,7 @@ export class CollectionService {
       description: LocalizedString | null;
       trailer: LocalizedString | null;
       type: Collection['type'];
+      genres: string[];
       videos: Array<{ videoId: string; episodeNumber: number }>;
       seasons: Array<{
         seasonNumber: number;
@@ -223,11 +334,13 @@ export class CollectionService {
           ? { description: body.description }
           : {}),
         ...(body.trailer !== undefined ? { trailer: body.trailer } : {}),
+        ...(body.genres !== undefined ? { genres: body.genres } : {}),
       });
     } else {
       const patch: Record<string, unknown> = {};
       if (body.description !== undefined) patch.description = body.description;
       if (body.trailer !== undefined) patch.trailer = body.trailer;
+      if (body.genres !== undefined) patch.genres = body.genres;
       if (Object.keys(patch).length > 0) {
         await this.collectionRepository.update(id, patch);
       }

@@ -19,8 +19,10 @@ const collectionTypes = ["movie", "series"]
 
 async function createNewCollection() {
     try {
-        const response = await $fetch('/api/collection', {
+        const config = useRuntimeConfig()
+        const response = await $fetch(`${config.public.BACKEND_API_URL}/api/collections`, {
             method: "POST",
+            credentials: 'include',
             body: collectionData.value
         })
         console.log("Collection created successfully:", response)

@@ -10,7 +10,9 @@ import path from 'node:path';
 export async function getVideoDuration(videoPath: string): Promise<number> {
   return new Promise((resolve, reject) => {
     ffmpeg.ffprobe(videoPath, (err, metadata) => {
-      if (err) reject(err instanceof Error ? err : new Error(String(err)));
+      if (err) {
+        return reject(err instanceof Error ? err : new Error(String(err)));
+      }
       const duration = metadata.format?.duration;
       if (typeof duration !== 'number') {
         return reject(new Error('Could not determine video duration'));

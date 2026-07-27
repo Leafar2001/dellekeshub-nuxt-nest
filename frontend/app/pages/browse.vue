@@ -1,55 +1,87 @@
 <script setup>
-const filter = ref('Filter')
-const filterList = ref([])
+const config = useRuntimeConfig()
+const genres = ref([])
+const activeGenre = ref('')
+const collections = ref([])
+const nextKey = ref(undefined)
+const loading = ref(false)
 
-function addFilterToList(filter) {
-    if (filterList.value.includes(filter)) {
-        const index = filterList.value.indexOf(filter)
-        filterList.value.splice(index, 1)
+async function loadCollections(reset = true) {
+    loading.value = true
+    try {
+        const params = { limit: 24 }
+        if (activeGenre.value) params.genre = activeGenre.value
+        if (!reset && nextKey.value) params.lastKey = nextKey.value
+
+        const response = await $fetch(`${config.public.BACKEND_API_URL}/api/collections/all`, {
+            credentials: 'include',
+            params
+        })
+        collections.value = reset ? response.collections : [...collections.value, ...response.collections]
+        nextKey.value = response.nextKey
+    } catch (error) {
+        console.error('Failed to load collections:', error)
+    } finally {
+        loading.value = false
     }
-    else {
-        filterList.value.push(filter)
-    }
-    console.log(filterList.value)
 }
+
+async function selectGenre(genre) {
+    activeGenre.value = genre === activeGenre.value ? '' : genre
+    await loadCollections(true)
+}
+
+onMounted(async () => {
+    loadCollections(true)
+    try {
+        genres.value = await $fetch(`${config.public.BACKEND_API_URL}/api/collections/genres`, {
+            credentials: 'include'
+        })
+    } catch (error) {
+        console.error('Failed to load genres:', error)
+    }
+})
 </script>
 
 <template>
     <div class="animate-in fade-in slide-in-from-bottom-[5%] duration-500">
         <div class="flex items-center justify-center gap-4 mb-5">
             <h1 class="text-4xl font-bold">Browse</h1>
-            <DropdownMenu v-model:model-value="filter">
+            <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                     <Button variant="outline" class="select-none">
-                        Filter
+                        {{ activeGenre || 'Filter' }}
                         <Icon name="mdi:filter" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent class="max-h-[50vh]">
-                    <DropdownMenuCheckboxItem v-for="genre in ['Action', 'Adventure', 'Comedy', 'Thriller', 'Romance']"
-                        class="cursor-pointer" :value="genre" :model-value="filterList.includes(genre)"
-                        :prevent-close="true" @select.prevent="addFilterToList(genre)">
+                    <DropdownMenuItem class="cursor-pointer" @select="selectGenre('')">
+                        All genres
+                    </DropdownMenuItem>
+                    <DropdownMenuItem v-for="genre in genres" :key="genre" class="cursor-pointer"
+                        @select="selectGenre(genre)">
+                        <Icon v-if="activeGenre === genre" name="material-symbols:check-rounded" size="16px" />
                         {{ genre }}
-                    </DropdownMenuCheckboxItem>
+                    </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
-        <div class="flex flex-wrap justify-center gap-2 md:gap-3 w-full">
-            <template v-for="card in 25">
-                <MediaCard title="Over the garden wall" :route="`/media/54752a4f-edbe-4e7d-97d4-3eb1bdde683b`"
-                    :watch-percentage="0" />
+        <div v-if="collections.length > 0" class="flex flex-wrap justify-center gap-2 md:gap-3 w-full">
+            <template v-for="collection in collections" :key="collection.id">
+                <MediaCard :title="pickLocale(collection.title)" :thumbnail-path="collectionThumbnail(collection)"
+                    :route="`/media/${collection.id}`" :watch-percentage="0" />
             </template>
         </div>
-        <!-- <div class="flex justify-center">
-            <div
-                class="grid grid-cols-[repeat(auto-fit,_minmax(160px,_1fr))] justify-items-start gap-2 md:gap-3 w-full">
-                <template v-for="card in 25">
-                    <MediaCard title="Over the garden wall" icon="ri:movie-2-line"
-                        :route="`/media/54752a4f-edbe-4e7d-97d4-3eb1bdde683b`" :watch-percentage="0"
-                        :disable-aspect-ratio="true" class="w-full h-full" />
-                </template>
-            </div>
-        </div> -->
+        <div v-else-if="!loading" class="flex flex-col items-center justify-center text-muted-foreground mt-20">
+            <Icon name="ri:movie-2-line" size="48px" />
+            <p class="mt-2">No collections found.</p>
+        </div>
+        <div v-if="nextKey" class="flex justify-center mt-5">
+            <Button variant="outline" :disabled="loading" @click="loadCollections(false)">
+                <Icon v-if="loading" name="svg-spinners:180-ring-with-bg" size="16px" />
+                Load more
+            </Button>
+        </div>
     </div>
 </template>
 

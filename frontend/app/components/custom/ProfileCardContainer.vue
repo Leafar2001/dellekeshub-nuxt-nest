@@ -5,6 +5,7 @@ const isScrolledToRight = ref(false)
 
 const props = defineProps({
     title: String,
+    amount: Number
 })
 
 function scrollRight() {

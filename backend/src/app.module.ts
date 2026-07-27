@@ -14,6 +14,9 @@ import { WatchProgressModule } from './watch-progress/watch-progress.module';
 import { StreamModule } from './stream/stream.module';
 import { ImageModule } from './images/image.module';
 import { PersonModule } from './person/person.module';
+import { WatchlistModule } from './watchlist/watchlist.module';
+import { FavoritesModule } from './favorites/favorites.module';
+import { InvitesModule } from './invites/invites.module';
 
 @Module({
   imports: [
@@ -45,6 +48,9 @@ import { PersonModule } from './person/person.module';
     StreamModule,
     ImageModule,
     PersonModule,
+    WatchlistModule,
+    FavoritesModule,
+    InvitesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
