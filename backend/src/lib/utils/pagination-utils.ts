@@ -2,7 +2,7 @@ import { Pagination, PaginationSchema } from '../validation/pagination';
 import * as z from 'zod/v4';
 
 const cursorSchema = z.object({
-  _id: z.string(),
+  id: z.string(),
   createdAt: z.instanceof(Date),
 });
 
@@ -21,9 +21,9 @@ export function keyToPagination(pagination: string): Pagination {
 }
 
 export function queryResultToPagination(
-  queryResult: any[],
+  queryResult: { id: string; createdAt: Date }[] | undefined,
 ): Pagination | undefined {
-  if (!queryResult) {
+  if (!queryResult || queryResult.length === 0) {
     return undefined;
   }
 
@@ -35,10 +35,10 @@ export function queryResultToPagination(
     return undefined;
   }
 
-  const { _id, createdAt } = parseResult.data;
+  const { id, createdAt } = parseResult.data;
 
   return {
     createdAt,
-    lastId: _id,
+    lastId: id,
   };
 }

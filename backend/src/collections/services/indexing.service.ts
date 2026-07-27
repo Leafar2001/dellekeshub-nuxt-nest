@@ -2,13 +2,18 @@ import fg from 'fast-glob';
 import { Injectable, Logger } from '@nestjs/common';
 import { VideoService } from '../../videos/services/video.service';
 import { CollectionService } from './collection.service';
-import type {
-  CollectionDocument,
-  CollectionVideo,
-  Season,
-} from '../persistence/collection.schema';
-import { Subtitle, VideoDocument } from '../../videos/persistence/video.schema';
-import { Types } from 'mongoose';
+import type { Collection } from '../persistence/collection.entity';
+import type { CreateSubtitle } from '../../videos/validation/create-video-schema';
+
+interface EpisodeEntry {
+  videoId: string;
+  episodeNumber: number;
+}
+
+interface SeasonEntry {
+  seasonNumber: number;
+  episodes: EpisodeEntry[];
+}
 
 @Injectable()
 export class IndexingService {
@@ -27,8 +32,9 @@ export class IndexingService {
     });
 
     for await (const directory of folderStream) {
-      return directory.toString(); // Short-circuit
+      return directory.toString();
     }
+    return undefined;
   }
 
   async indexCollection(name: string) {
@@ -44,17 +50,15 @@ export class IndexingService {
 
     const collectionName = directoryPath.split('/').pop()!;
 
-    // Check if collection already exists
-    let collection: CollectionDocument | null =
+    let collection: Collection | null =
       await this.collectionService.findCollectionByTitle(collectionName);
 
-    // Create collection if it doesn't exist
     if (!collection) {
       collection = await this.collectionService.createCollection({
         title: {
           'en-US': collectionName,
         },
-        type: 'movie', // Initialize as movie. Type will be determined later
+        type: 'movie',
       });
     } else {
       this.logger.log(`Collection: (${name}) already exists! Updating...`);
@@ -65,16 +69,17 @@ export class IndexingService {
     this.logger.log(`Finished indexing collection: (${name})!`);
   }
 
-  async indexVideos(collection: CollectionDocument, directoryPath: string) {
+  async indexVideos(collection: Collection, directoryPath: string) {
     const videosStream = fg.stream(`${directoryPath}/**/*.mp4`, {
       deep: 2,
       onlyFiles: true,
       caseSensitiveMatch: false,
     });
 
-    const seasons: Season[] = [];
-    const videos: CollectionVideo[] = [];
-    const episodes = new Map<number | undefined, number>();
+    const seasons: SeasonEntry[] = [];
+    const videos: EpisodeEntry[] = [];
+    const episodeCount = new Map<number | undefined, number>();
+    let hasMovieEpisode = false;
 
     for await (const videoPath of videosStream) {
       const { title, seasonNumber } = this.destructVideoPath(
@@ -85,8 +90,7 @@ export class IndexingService {
         `Indexing video: (${title})${seasonNumber ? `, season: (${seasonNumber})` : ''}...`,
       );
 
-      let video: VideoDocument | null =
-        await this.videoService.findVideoByTitle(title);
+      let video = await this.videoService.findVideoByTitle(title);
 
       if (!video) {
         const subtitles = await this.findSubtitles(videoPath.toString());
@@ -102,51 +106,37 @@ export class IndexingService {
         this.logger.log(`Video: (${title}) already exists!`);
       }
 
-      episodes.set(seasonNumber, (episodes.get(seasonNumber) ?? 0) + 1);
-      const episodeNumber = episodes.get(seasonNumber)!;
+      const next = (episodeCount.get(seasonNumber) ?? 0) + 1;
+      episodeCount.set(seasonNumber, next);
 
-      const episode = {
-        videoId: video._id,
-        episodeNumber,
-        addedAt: new Date(),
+      const episode: EpisodeEntry = {
+        videoId: video.id,
+        episodeNumber: next,
       };
 
       if (seasonNumber === undefined) {
         videos.push(episode);
+        hasMovieEpisode = true;
       } else {
-        let season = seasons.find(
-          (season) => season.seasonNumber === seasonNumber,
-        );
-
+        let season = seasons.find((s) => s.seasonNumber === seasonNumber);
         if (!season) {
-          season = {
-            seasonNumber,
-            episodes: [],
-          };
+          season = { seasonNumber, episodes: [] };
           seasons.push(season);
         }
-
         season.episodes.push(episode);
       }
     }
 
-    // Determine collection type
-    const type =
-      Object.keys(episodes).filter((k) => k === undefined).length > 0
-        ? 'movie'
-        : 'series';
+    const type = hasMovieEpisode && seasons.length === 0 ? 'movie' : 'series';
 
-    return await this.collectionService.updateCollection(
-      collection._id.toString(),
-      {
-        type,
-        videos,
-        seasons,
-      },
-    );
+    return this.collectionService.updateCollection(collection.id, {
+      type,
+      videos,
+      seasons,
+    });
   }
 
-  async findSubtitles(videoPath: string): Promise<Subtitle[]> {
+  async findSubtitles(videoPath: string): Promise<CreateSubtitle[]> {
     const videoPathWithoutExtension = videoPath.replace(/\.mp4$/, '');
 
     const subtitleStream = fg.stream(`${videoPathWithoutExtension}*.vtt`, {
@@ -155,7 +145,7 @@ export class IndexingService {
       caseSensitiveMatch: false,
     });
 
-    const subtitles: Subtitle[] = [];
+    const subtitles: CreateSubtitle[] = [];
 
     for await (const subtitlePath of subtitleStream) {
       const result = this.destructSubtitlePath(subtitlePath.toString());
@@ -165,23 +155,18 @@ export class IndexingService {
       this.logger.log(`Found subtitle: (${name}), language: (${language})`);
 
       subtitles.push({
-        _id: new Types.ObjectId(),
         name,
         language,
         path: subtitlePath.toString(),
-        addedAt: new Date(),
       });
     }
 
     return subtitles;
   }
 
-  destructSubtitlePath(subtitlePath: string):
-    | {
-        name: string;
-        language: string;
-      }
-    | undefined {
+  destructSubtitlePath(
+    subtitlePath: string,
+  ): { name: string; language: string } | undefined {
     const regex = /.*_([a-z]{2})_([a-zA-Z0-9]+)\.vtt$/;
     const match = subtitlePath.match(regex);
 
@@ -189,13 +174,7 @@ export class IndexingService {
       return undefined;
     }
 
-    const langCode = match[1];
-    const name = match[2];
-
-    return {
-      name,
-      language: langCode,
-    };
+    return { name: match[2], language: match[1] };
   }
 
   destructVideoPath(videoPath: string): {
@@ -214,15 +193,11 @@ export class IndexingService {
 
     if (seasonString?.toLocaleLowerCase()?.includes('season')) {
       const numberString = seasonString.replace(/[^0-9]/g, '');
-
       if (numberString) {
         seasonNumber = parseInt(numberString);
       }
     }
 
-    return {
-      title,
-      seasonNumber,
-    };
+    return { title, seasonNumber };
   }
 }

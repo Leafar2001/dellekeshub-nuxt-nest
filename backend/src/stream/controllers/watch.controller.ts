@@ -5,14 +5,11 @@ import {
   Param,
   Req,
   Res,
-  UseGuards,
 } from '@nestjs/common';
-import { SessionAuthGuard } from '../../auth/middleware/session.guard';
 import type { Request, Response } from 'express';
 import { VideoService } from '../../videos/services/video.service';
 import { streamFile } from '../../lib/utils/stream-utils';
 
-@UseGuards(SessionAuthGuard)
 @Controller('watch')
 export class WatchController {
   constructor(private videoService: VideoService) {}

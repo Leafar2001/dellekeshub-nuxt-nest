@@ -1,47 +1,64 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  WatchProgress,
-  WatchProgressDocument,
-} from './persistence/watch-progress.schema';
-import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { WatchProgress } from './persistence/watch-progress.entity';
+import { type MediaType } from '../lib/project';
 
 @Injectable()
 export class WatchProgressService {
   constructor(
-    @InjectModel(WatchProgress.name)
-    private model: Model<WatchProgressDocument>,
+    @InjectRepository(WatchProgress)
+    private readonly watchProgressRepository: Repository<WatchProgress>,
   ) {}
 
-  upsert(
+  async upsert(
     userId: string,
     mediaId: string,
+    mediaType: MediaType,
     episodeId: string,
     currentTime: number,
     duration: number,
   ) {
-    return this.model.findOneAndUpdate(
-      { userId, mediaId },
-      {
-        userId,
-        mediaId,
+    const existing = await this.watchProgressRepository.findOne({
+      where: { userId, mediaId },
+    });
+
+    const finished = duration > 0 && currentTime >= duration - 5;
+
+    if (existing) {
+      await this.watchProgressRepository.update(existing.id, {
         episodeId,
         currentTime,
         duration,
-        finished: duration && currentTime >= duration - 5,
-      },
-      { upsert: true, new: true },
-    );
+        finished,
+      });
+      return this.watchProgressRepository.findOne({
+        where: { id: existing.id },
+      });
+    }
+
+    const created = this.watchProgressRepository.create({
+      userId,
+      mediaId,
+      mediaType,
+      episodeId,
+      currentTime,
+      duration,
+      finished,
+    });
+    return this.watchProgressRepository.save(created);
   }
 
   get(userId: string, mediaId: string) {
-    return this.model.findOne({ userId, mediaId });
+    return this.watchProgressRepository.findOne({
+      where: { userId, mediaId },
+    });
   }
 
   history(userId: string) {
-    return this.model
-      .find({ userId })
-      .populate('mediaId')
-      .sort({ updatedAt: -1 });
+    return this.watchProgressRepository.find({
+      where: { userId },
+      order: { updatedAt: 'DESC' },
+    });
   }
 }

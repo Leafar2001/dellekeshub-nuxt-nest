@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Collection, CollectionSchema } from './persistence/collection.schema';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Collection } from './persistence/collection.entity';
+import { CollectionImage } from './persistence/entities/collection-image.entity';
+import { CollectionVideo } from './persistence/entities/collection-video.entity';
+import { CollectionSeason } from './persistence/entities/collection-season.entity';
 import { CollectionController } from './controllers/collection.controller';
 import { CollectionService } from './services/collection.service';
 import { IndexingService } from './services/indexing.service';
@@ -8,8 +11,11 @@ import { VideoModule } from '../videos/video.module';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Collection.name, schema: CollectionSchema },
+    TypeOrmModule.forFeature([
+      Collection,
+      CollectionImage,
+      CollectionVideo,
+      CollectionSeason,
     ]),
     VideoModule,
   ],

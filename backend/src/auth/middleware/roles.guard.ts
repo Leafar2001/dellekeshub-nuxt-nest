@@ -1,8 +1,12 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from './roles.decorator';
-import { Role } from '../../lib/project';
+import type { Role } from '../../lib/project';
+
+interface BetterAuthSession {
+  user?: { role?: Role };
+}
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -14,10 +18,11 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (!requiredRoles) return true;
+    if (!requiredRoles || requiredRoles.length === 0) return true;
 
     const req = context.switchToHttp().getRequest<Request>();
-    const userRole = req.session.role;
+    const session = (req as unknown as { session?: BetterAuthSession }).session;
+    const userRole = session?.user?.role;
 
     return !!userRole && requiredRoles.includes(userRole);
   }

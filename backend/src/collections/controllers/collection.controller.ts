@@ -9,7 +9,6 @@ import {
   UseGuards,
   Query,
 } from '@nestjs/common';
-import { SessionAuthGuard } from '../../auth/middleware/session.guard';
 import { RolesGuard } from '../../auth/middleware/roles.guard';
 import { Roles } from '../../auth/middleware/roles.decorator';
 import { CollectionService } from '../services/collection.service';
@@ -29,7 +28,6 @@ import {
 import { IndexingService } from '../services/indexing.service';
 
 @Controller('collections')
-@UseGuards(SessionAuthGuard)
 export class CollectionController {
   constructor(
     private readonly collectionService: CollectionService,
@@ -50,10 +48,7 @@ export class CollectionController {
       ? paginationToKey(nextPagination)
       : undefined;
 
-    return {
-      collections,
-      nextKey,
-    };
+    return { collections, nextKey };
   }
 
   @Get('search')
@@ -62,7 +57,7 @@ export class CollectionController {
     @Query('limit') limit?: number,
     @Query('lastKey') lastKey?: string,
   ) {
-    if (!q) return [];
+    if (!q) return { collections: [], nextKey: undefined };
 
     const pagination = lastKey ? keyToPagination(lastKey) : undefined;
 
@@ -73,10 +68,7 @@ export class CollectionController {
       ? paginationToKey(nextPagination)
       : undefined;
 
-    return {
-      collections,
-      nextKey,
-    };
+    return { collections, nextKey };
   }
 
   @Post()
@@ -107,7 +99,7 @@ export class CollectionController {
   }
 
   @Get(':id')
-  async findById(@Param('id') id: string) {
+  findById(@Param('id') id: string) {
     return this.collectionService.findCollectionById(id);
   }
 
@@ -125,7 +117,7 @@ export class CollectionController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles('admin')
-  async remove(@Param('id') id: string) {
+  remove(@Param('id') id: string) {
     return this.collectionService.deleteCollection(id);
   }
 }

@@ -12,3 +12,6 @@ export type CollectionType = (typeof collectionTypes)[number];
 
 export const personRoles = ['actor', 'director', 'writer', 'star'] as const;
 export type PersonRole = (typeof personRoles)[number];
+
+export const mediaTypes = ['video', 'collection'] as const;
+export type MediaType = (typeof mediaTypes)[number];

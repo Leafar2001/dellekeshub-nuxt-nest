@@ -1,39 +1,47 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { Review, ReviewDocument } from './persistence/review.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Review } from './persistence/review.entity';
+import { type MediaType } from '../lib/project';
 
 @Injectable()
 export class ReviewsService {
   constructor(
-    @InjectModel(Review.name) private reviewModel: Model<ReviewDocument>,
+    @InjectRepository(Review)
+    private readonly reviewRepository: Repository<Review>,
   ) {}
 
-  async create(
+  create(
     userId: string,
     mediaId: string,
-    validator: { rating: number; comment?: string },
+    mediaType: MediaType,
+    data: { rating: number; comment?: string },
   ) {
-    return this.reviewModel.create({
+    const review = this.reviewRepository.create({
       userId,
       mediaId,
-      ...validator,
+      mediaType,
+      rating: data.rating,
+      comment: data.comment ?? null,
     });
+    return this.reviewRepository.save(review);
   }
 
   findForMedia(mediaId: string) {
-    return this.reviewModel
-      .find({ mediaId })
-      .populate('userId', 'username')
-      .sort({ createdAt: -1 });
+    return this.reviewRepository.find({
+      where: { mediaId },
+      relations: { user: true },
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async getAverageRating(mediaId: string) {
-    const result = await this.reviewModel.aggregate([
-      { $match: { mediaId: new Types.ObjectId(mediaId) } },
-      { $group: { _id: null, avg: { $avg: '$rating' } } },
-    ]);
+    const result = await this.reviewRepository
+      .createQueryBuilder('review')
+      .select('AVG(review.rating)', 'avg')
+      .where('review.mediaId = :mediaId', { mediaId })
+      .getRawOne<{ avg: string | null }>();
 
-    return result[0]?.avg ?? 0;
+    return result?.avg ? parseFloat(result.avg) : 0;
   }
 }

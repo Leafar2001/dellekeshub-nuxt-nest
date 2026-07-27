@@ -30,20 +30,14 @@ npm run lint
 # Format with Prettier
 npm run format
 
-# Run all tests
-npm run test
+# Create / update better-auth DB tables (user, session, account, verification)
+npm run auth:migrate
 
-# Run tests in watch mode
-npm run test:watch
+# Generate a TypeORM SQL migration (production)
+npm run db:generate -- src/migrations/<Name>
 
-# Run a single test file
-npm run test -- auth.service.spec.ts
-
-# Run tests with coverage
-npm run test:cov
-
-# Run e2e tests
-npm run test:e2e
+# Apply TypeORM migrations (production)
+npm run db:migrate
 ```
 
 ### Frontend (Nuxt 4)
@@ -113,16 +107,13 @@ npm run preview
 #### REST API
 
 - Follow RESTful conventions
-- Use DTOs with class-validator for request validation
-- Use Zod schemas in `validation/` folders for complex validation
+- Validate request bodies with Zod schemas via `createZodValidationPipe(Schema)` on `@Body(...)`
+- Validation schemas live in per-module `validation/` folders; reuse `LocalizedStringSchema` / `PaginationSchema` from `lib/`
 - Return appropriate HTTP status codes
 
 #### Testing
 
-- Test files: `*.spec.ts` in same directory as source
-- Use NestJS Testing module: `Test.createTestingModule()`
-- Mock dependencies with `jest.createMock()` or manual mocks
-- Test structure: `describe`, `beforeEach`, `it`/`test`
+- No test suite is maintained in this repository. Do not add tests unless explicitly requested.
 
 ---
 
@@ -172,29 +163,38 @@ npm run preview
 
 ---
 
-### MongoDB / Mongoose
+### PostgreSQL / TypeORM
 
-- Schemas in `persistence/` folders
-- Use Mongoose decorators: `@Prop`, `@Schema`, `@Injectable`
-- Document types: `Document` suffix (e.g., `VideoDocument`)
-- Indexes defined in schema decorators
+- Database is PostgreSQL; connection string comes from `DATABASE_URL`
+- Entities live in per-module `persistence/` folders (and `persistence/entities/` for join tables)
+- Use TypeORM decorators: `@Entity`, `@Column`, `@OneToMany` / `@ManyToOne`, `@PrimaryGeneratedColumn`
+- Inject repositories with `@InjectRepository(Entity)` and `@nestjs/typeorm` `TypeOrmModule.forFeature([...])`
+- `synchronize` is enabled in non-prod for convenience; **off** in prod (use `npm run db:migrate`)
+- Localized strings (`title`, `slug`, `description`, `trailer`) are JSONB columns shaped as `{ "en-US"?: string, "nl-NL"?: string }`
+- Polymorphic "media" references use `media_id` + `media_type` (`'video' | 'collection'`) with no DB FK; resolve in app code
+- The `users` table is owned by **better-auth** (`npx auth migrate`); our `User` entity maps to it for reads/relations (custom `role` and `avatarB64` columns)
 
 ---
 
 ### Authentication
 
-- JWT for API authentication
-- Session-based auth for web (express-session)
-- Guards: `RolesGuard`, `SessionGuard` in `auth/middleware/`
-- Use `@Roles()` decorator for role-based access
+- Uses **better-auth** wired via `@thallesp/nestjs-better-auth` (`AuthModule.forRoot({ auth })` in `app.module.ts`)
+- Auth endpoints are mounted under `/api/auth/*`; the better-auth instance lives in `src/auth/auth.ts`
+- A global `AuthGuard` protects every route by default — use `@AllowAnonymous()` / `@OptionalAuth()` to open routes
+- Inject the session with `@Session() session: UserSession` from `@thallesp/nestjs-better-auth`
+- Roles: custom `role` column ('user' | 'admin') on better-auth's `users` table (`additionalFields`)
+- `RolesGuard` + `@Roles(...roles)` (in `auth/middleware/`) read `session.user.role`; stack with `@UseGuards(RolesGuard)`
+- `main.ts` bootstraps with `bodyParser: false` (required by the better-auth integration)
+- Username login is enabled via the better-auth **username** plugin
 
 ---
 
 ### Zod Validation
 
 - Validation schemas in `validation/` folders per module
-- Use `zod-validation.ts` utility for request validation
-- Parse and validate in controllers or pipes
+- Use `createZodValidationPipe(Schema)` from `lib/utils/zod-validation.ts` on `@Body(...)`
+- There is no global `ValidationPipe`; every validated route declares its own Zod pipe
+- Shared schemas: `LocalizedStringSchema`, `PaginationSchema` in `lib/validation/`
 
 ---
 
@@ -202,10 +202,10 @@ npm run preview
 
 **Backend:**
 - NestJS 11
-- Mongoose 9
-- Passport (JWT + Session)
+- TypeORM 0.3 (PostgreSQL via `pg`)
+- better-auth 1.6 (`@thallesp/nestjs-better-auth`)
 - Zod 4
-- class-validator / class-transformer
+- fluent-ffmpeg, fast-glob, slugify, mime-types
 
 **Frontend:**
 - Nuxt 4
@@ -221,7 +221,7 @@ npm run preview
 ```
 backend/
 ├── src/
-│   ├── auth/           # Authentication (guards, strategies, validation)
+│   ├── auth/           # better-auth instance + RolesGuard / @Roles decorator
 │   ├── users/          # User management
 │   ├── videos/         # Video management
 │   ├── collections/    # Collection management
@@ -254,12 +254,15 @@ export class VideoService {
   private readonly logger = new Logger(VideoService.name);
 
   constructor(
-    @InjectModel(Video.name) private videoModel: Model<VideoDocument>,
+    @InjectRepository(Video) private videoRepository: Repository<Video>,
     private imageService: ImageService,
   ) {}
 
-  async findVideoById(id: string): Promise<VideoDocument | null> {
-    return this.videoModel.findById(id);
+  async findVideoById(id: string): Promise<Video | null> {
+    return this.videoRepository.findOne({
+      where: { id },
+      relations: { images: { image: true }, subtitles: true, persons: true },
+    });
   }
 }
 ```
@@ -286,26 +289,9 @@ async function fetchData() {
 
 ---
 
-## 5. Running Specific Tests
+## 5. Environment Variables
 
-To run a single test file in the backend:
-
-```bash
-cd backend
-npm run test -- auth.service.spec.ts
-```
-
-Or with jest directly:
-```bash
-cd backend
-npx jest auth.service.spec.ts
-```
-
----
-
-## 6. Environment Variables
-
-- Backend: `.env` file (see `.env.example` if available)
+- Backend: `.env` file (see `.env.example`)
 - Frontend: Nuxt config or `.env` files
-- MongoDB connection string required for backend
-- JWT secret for authentication
+- PostgreSQL connection string (`DATABASE_URL`) required for backend
+- `BETTER_AUTH_SECRET` (≥ 32 chars) and `BETTER_AUTH_URL` required for authentication

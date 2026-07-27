@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { snapshotAtPercentage } from '../../lib/utils/ffmpeg-utils';
-import { Image, ImageDocument } from '../persistence/image.schema';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Image } from '../persistence/image.entity';
 import { generateSlug } from '../../lib/utils/slug-utils';
 
 @Injectable()
@@ -10,21 +10,23 @@ export class ImageService {
   private readonly logger = new Logger(ImageService.name);
 
   constructor(
-    @InjectModel(Image.name) private imageModel: Model<ImageDocument>,
+    @InjectRepository(Image)
+    private readonly imageRepository: Repository<Image>,
   ) {}
 
-  async findImageById(id: string): Promise<ImageDocument | null> {
-    return this.imageModel.findById(id);
+  findImageById(id: string) {
+    return this.imageRepository.findOne({ where: { id } });
   }
 
-  async createImage(image: Image): Promise<ImageDocument> {
-    return this.imageModel.create(image);
+  createImage(image: Pick<Image, 'path' | 'name' | 'slug'>) {
+    const created = this.imageRepository.create(image);
+    return this.imageRepository.save(created);
   }
 
   async createSnapshot(
     videoPath: string,
     snapshotName: string,
-  ): Promise<ImageDocument> {
+  ): Promise<Image> {
     this.logger.log(`Creating snapshot ${snapshotName}...`);
 
     const path = await snapshotAtPercentage(

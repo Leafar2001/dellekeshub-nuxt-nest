@@ -1,30 +1,32 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Req,
-  Param,
-  Body,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, UseGuards } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
-import { SessionAuthGuard } from '../auth/middleware/session.guard';
 import { Roles } from '../auth/middleware/roles.decorator';
-import type { Request } from 'express';
+import { RolesGuard } from '../auth/middleware/roles.guard';
+import { createZodValidationPipe } from '../lib/utils/zod-validation';
+import {
+  type CreateReview,
+  CreateReviewSchema,
+} from './validation/create-review-schema';
+import { Session } from '@thallesp/nestjs-better-auth';
+import type { UserSession } from '@thallesp/nestjs-better-auth';
 
-@UseGuards(SessionAuthGuard)
 @Controller('reviews')
 export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
-  @Roles('admin')
   @Post(':mediaId/create')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   create(
     @Param('mediaId') mediaId: string,
-    @Req() req: Request,
-    @Body() body: { rating: number; comment?: string },
+    @Session() session: UserSession,
+    @Body(createZodValidationPipe(CreateReviewSchema)) body: CreateReview,
   ) {
-    return this.reviewsService.create(req.session.userId!, mediaId, body);
+    const userId = session.user.id;
+    return this.reviewsService.create(userId, mediaId, body.mediaType, {
+      rating: body.rating,
+      comment: body.comment,
+    });
   }
 
   @Get(':mediaId')

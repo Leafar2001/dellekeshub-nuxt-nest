@@ -1,28 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User, UserDocument } from './persistence/user.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './persistence/user.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User.name)
-    private userModel: Model<UserDocument>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
-  create(data: Partial<User>) {
-    return this.userModel.create(data);
-  }
-
   getAllUsers() {
-    return this.userModel.find();
-  }
-
-  findByUsername(username: string) {
-    return this.userModel.findOne({ username });
+    return this.userRepository.find({
+      order: { createdAt: 'DESC' },
+      select: [
+        'id',
+        'name',
+        'email',
+        'username',
+        'displayUsername',
+        'role',
+        'avatarB64',
+        'createdAt',
+        'updatedAt',
+      ],
+    });
   }
 
   findById(id: string) {
-    return this.userModel.findById(id);
+    return this.userRepository.findOne({
+      where: { id },
+      select: [
+        'id',
+        'name',
+        'email',
+        'username',
+        'displayUsername',
+        'role',
+        'avatarB64',
+        'createdAt',
+        'updatedAt',
+      ],
+    });
+  }
+
+  findByUsername(username: string) {
+    return this.userRepository.findOne({
+      where: { username },
+    });
   }
 }

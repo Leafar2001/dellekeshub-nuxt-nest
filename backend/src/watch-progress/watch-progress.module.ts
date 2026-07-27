@@ -1,18 +1,11 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { WatchProgressService } from './watch-progress.service';
 import { WatchProgressController } from './watch-progress.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import {
-  WatchProgress,
-  WatchProgressSchema,
-} from './persistence/watch-progress.schema';
+import { WatchProgress } from './persistence/watch-progress.entity';
 
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: WatchProgress.name, schema: WatchProgressSchema },
-    ]),
-  ],
+  imports: [TypeOrmModule.forFeature([WatchProgress])],
   providers: [WatchProgressService],
   controllers: [WatchProgressController],
   exports: [WatchProgressService],
